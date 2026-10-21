@@ -6,6 +6,10 @@ type Movie @node {
   tagline: String
   """Year the film was released."""
   released: Int
+  """Audience rating from 0 to 10. Sample data, approximate."""
+  rating: Float
+  """Running time in minutes."""
+  runtime: Int
   """Genres the film belongs to."""
   genres: [Genre!]! @relationship(type: "IN_GENRE", direction: OUT)
   """People who acted in the film."""

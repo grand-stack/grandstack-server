@@ -9,3 +9,5 @@ docker run --rm -p 4000:4000 \
 ```
 
 For the full stack (Neo4j included) use the [grandstack](../grandstack) umbrella repo. See [AGENTS.md](AGENTS.md) for configuration and how to change the schema.
+
+The bundled Movies data is sample data: titles, casts and relationships are real, but ratings and runtimes are approximate.

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { loadConfig } from "../src/config.js";
-import { splitStatements } from "../src/seed.js";
+import { decideSeed, seedVersion, splitStatements } from "../src/seed.js";
 
 describe("loadConfig", () => {
   it("applies defaults", () => {
@@ -21,5 +21,18 @@ describe("loadConfig", () => {
 describe("splitStatements", () => {
   it("splits on terminating semicolons and drops comment-only chunks", () => {
     expect(splitStatements("// hi\nCREATE (a);\nCREATE (b);\n// end\n")).toEqual(["// hi\nCREATE (a)", "CREATE (b)"]);
+  });
+});
+
+describe("seed versioning", () => {
+  it("reads the version header, defaulting to 1", () => {
+    expect(seedVersion("// x\n// seed-version: 7\nCREATE (a);")).toBe(7);
+    expect(seedVersion("CREATE (a);")).toBe(1);
+  });
+  it("loads into an empty database", () => expect(decideSeed(0, null, 2)).toBe("load"));
+  it("leaves foreign Movie data alone", () => expect(decideSeed(10, null, 2)).toBe("skip-foreign"));
+  it("skips when current, reloads when the script is newer", () => {
+    expect(decideSeed(152, 2, 2)).toBe("skip-current");
+    expect(decideSeed(152, 1, 2)).toBe("load");
   });
 });

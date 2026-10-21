@@ -4,15 +4,20 @@ import { Neo4jGraphQL } from "@neo4j/graphql";
 import neo4j from "neo4j-driver";
 import { createYoga } from "graphql-yoga";
 import { loadConfig } from "./config.js";
-import { seedIfEmpty } from "./seed.js";
+import { seedIfNeeded } from "./seed.js";
 
 const config = loadConfig();
 const driver = neo4j.driver(config.neo4jUri, neo4j.auth.basic(config.neo4jUsername, config.neo4jPassword));
 await driver.verifyConnectivity({ database: config.neo4jDatabase });
 
 if (config.seed) {
-  const seeded = await seedIfEmpty(driver, config.neo4jDatabase, config.seedPath);
-  console.log(seeded ? "Seeded Movies dataset" : "Database already has data, skipping seed");
+  const decision = await seedIfNeeded(driver, config.neo4jDatabase, config.seedPath);
+  const messages = {
+    load: "Loaded Movies seed",
+    "skip-current": "Movies seed already loaded, skipping",
+    "skip-foreign": "Database already has Movie data not loaded by this seed, skipping",
+  };
+  console.log(messages[decision]);
 }
 
 const typeDefs = await readFile(config.schemaPath, "utf8");

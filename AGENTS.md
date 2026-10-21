@@ -8,7 +8,7 @@ GraphQL API over Neo4j using `@neo4j/graphql` v7 and GraphQL Yoga. Configured on
 
 ## Environment
 `NEO4J_URI` and `NEO4J_PASSWORD` are required. Optional: `NEO4J_USERNAME` (neo4j), `NEO4J_DATABASE` (neo4j), `NEO4J_CYPHER_VERSION_PREFIX` (false; true adds the Cypher version prefix to queries), `SCHEMA_PATH` (schema/schema.graphql), `SEED` (true), `SEED_PATH` (seed/movies.cypher), `PORT` (4000), `CORS_ORIGIN` (http://localhost:3000; comma-separated origins, or `*`).
-The Movies seed loads only when the target database has no `Movie` nodes. `SEED=false` disables it.
+The Movies seed loads into an empty database, and reloads when `// seed-version: N` in the seed file is newer than the `(:SeedMeta {name:'movies'})` node. A database with Movie nodes but no SeedMeta is treated as someone else's data and left alone. `SEED=false` disables seeding. Bump the version when you change the seed (all statements use MERGE, so reloading is safe). The data is sample data with approximate ratings.
 
 ## Change the schema
 1. Edit `schema/schema.graphql`. Every type, field and argument needs a `"""description"""`.
