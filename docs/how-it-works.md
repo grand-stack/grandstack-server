@@ -2,7 +2,7 @@
 
 grandstack-server is a small Node service that exposes a GraphQL API over a Neo4j database. You describe your data in a GraphQL schema file; [`@neo4j/graphql`](https://neo4j.com/docs/graphql/) turns it into a full API (queries, filters, sorting, create/update/delete) and translates every request into Cypher. [GraphQL Yoga](https://the-guild.dev/graphql/yoga-server) serves it over HTTP.
 
-Applies to grandstack-server v0.6.0 (`@neo4j/graphql` 7.6.4, `graphql` 16.14, Node 22 or later).
+Applies to grandstack-server v0.7.0 (`@neo4j/graphql` 7.6.4, `graphql` 16.14, Node 22 or later).
 
 ## What is in the repo
 
@@ -25,11 +25,12 @@ Applies to grandstack-server v0.6.0 (`@neo4j/graphql` 7.6.4, `graphql` 16.14, No
 
 1. **Read configuration** from environment variables. `NEO4J_URI` and `NEO4J_PASSWORD` are required.
 2. **Create the Neo4j driver** and call `verifyConnectivity`. This fails immediately if Neo4j is unreachable or the credentials are wrong.
-3. **Seed** (unless `SEED=false`): decide whether to load `seed/movies.cypher` ([rules](seeding.md)).
-4. **Read the schema file** (`SCHEMA_PATH`) and build the executable schema with `new Neo4jGraphQL({ typeDefs, driver }).getSchema()`. Schema errors, for example a missing `@node`, surface here.
-5. **Create the Yoga server** with CORS, the counts plugin (if `REFRESH_COUNTS` is not `false`) and the per-request context below.
-6. **Listen** on `PORT`. The GraphQL endpoint is `/graphql`; opening it in a browser shows GraphiQL.
-7. On `SIGINT` or `SIGTERM` it closes the HTTP server and the driver.
+3. **Run setup Cypher** from `SETUP_CYPHER_PATHS`, if set (idempotent constraints and indexes, run at every start).
+4. **Seed** (unless `SEED=false`): decide whether to load `seed/movies.cypher` ([rules](seeding.md)).
+5. **Read the schema**: the file at `SCHEMA_PATH` plus any `SCHEMA_EXTRA_PATHS`, joined, and build the executable schema with `new Neo4jGraphQL({ typeDefs, driver, features }).getSchema()`. If the `AUTH_*` variables are set, `features.authorization` is a remote JWKS with issuer and audience checks. Schema errors, for example a missing `@node`, surface here.
+6. **Create the Yoga server** with CORS, the counts plugin (if `REFRESH_COUNTS` is not `false`) and the per-request context below.
+7. **Listen** on `PORT`. The GraphQL endpoint is `/graphql`; opening it in a browser shows GraphiQL.
+8. On `SIGINT` or `SIGTERM` it closes the HTTP server and the driver.
 
 ## What happens to a request
 
@@ -52,7 +53,7 @@ Yoga calls `context` for every request in `src/index.ts`. `@neo4j/graphql` reads
 | --- | --- | --- |
 | `executionContext` | the shared driver | The driver (or session or transaction) used to run the generated Cypher. With a driver, the library opens a session for each request. |
 | `sessionConfig.database` | `NEO4J_DATABASE` (default `neo4j`) | Database every request runs against. Only used when `executionContext` is a driver. |
-| `token` | the `Authorization` header, if any | A bearer token (with or without `Bearer `) for authentication and authorization. It does nothing until you enable authorization in the schema; authentication is planned but not built yet. |
+| `token` | the `Authorization` header, if any | A bearer token (with or without `Bearer `). Ignored unless the `AUTH_*` variables are set; then it is verified and its claims drive `@authentication` and `@authorization` ([schema guide](schema-guide.md#authentication-and-authorization-rules-in-v7)). |
 | `cypherQueryOptions.addVersionPrefix` | `NEO4J_CYPHER_VERSION_PREFIX` (default `false`) | `true` prefixes generated queries with the Cypher version the library targets; `false` lets the database use its default. |
 
 Other keys exist but are not set. `jwt` supplies an already-decoded token payload and takes precedence over `token`. `cypherParams` supplies named parameters that `@cypher` fields can reference as `$name`, for example a tenant id. `transaction` sets metadata and a timeout for the transaction. The rest of `cypherQueryOptions` (`runtime`, `planner`, `replan`, and so on) are query-tuning options left at the database default.
@@ -62,6 +63,6 @@ Other keys exist but are not set. `jwt` supplies an already-decoded token payloa
 - Titles and names act as keys (unique constraints), so there are no ids. See [seeding](seeding.md).
 - Community Neo4j supports one database, which is why the default is `neo4j`.
 - `graphql` must stay on 16.x, because `@neo4j/graphql` 7.6.4 declares it as a peer dependency (graphql 17 is newer but not supported).
-- There is no authentication yet. Anyone who can reach the endpoint can read and write everything.
+- **Authentication is off by default.** With no `AUTH_*` variables anyone who can reach the endpoint can read and write everything. Turn it on as described in [configuration](configuration.md#authentication-and-extra-schema).
 
 Next: [schema guide](schema-guide.md), [mutations](mutations.md), [recipes](recipes.md).

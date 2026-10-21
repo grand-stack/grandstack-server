@@ -55,3 +55,20 @@ export async function seedIfNeeded(
     await session.close();
   }
 }
+
+/** Runs idempotent setup Cypher files (constraints, indexes) at every start. Statements are split like the seed. */
+export async function runSetupCypher(driver: Driver, database: string, paths: string[]): Promise<number> {
+  let count = 0;
+  const session = driver.session({ database });
+  try {
+    for (const path of paths) {
+      for (const statement of splitStatements(await readFile(path, "utf8"))) {
+        await session.run(statement);
+        count++;
+      }
+    }
+  } finally {
+    await session.close();
+  }
+  return count;
+}

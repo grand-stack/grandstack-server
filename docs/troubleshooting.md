@@ -25,6 +25,19 @@ Errors we actually hit while building this, with causes and fixes.
 | `Unexpected error.` when reading a field from a custom `@cypher` type | A plain object returned from `@cypher` cannot contain a node. Return scalars (see `Collaboration`) ([schema guide](schema-guide.md#computed-fields-with-cypher)). |
 | Film counts look wrong, or are `null` inside a mutation result | The refresh runs after the mutation's response is built, so read counts with a query afterwards. Counts are stored and refreshed after mutations. If you changed relationships with Cypher directly, rerun the statement in [seeding](seeding.md#derived-counts). If the plugin is off (`REFRESH_COUNTS=false`) nothing refreshes them. |
 
+## Auth
+
+| Symptom | Cause and fix |
+| --- | --- |
+| Startup: `AUTH_JWKS_URL, AUTH_ISSUER and AUTH_AUDIENCE must be set together; missing: ...` | Set all three or none. |
+| Every request with a token fails with `Unauthenticated` although the token is fresh | The token's `iss` or `aud` does not match `AUTH_ISSUER` or `AUTH_AUDIENCE` exactly (scheme, host, port, trailing slash), or the server cannot reach `AUTH_JWKS_URL` (use the address the server can reach, for example `http://keycloak:8080/...`, which can differ from the issuer URL). Decode the token (jwt.io, or `cut -d. -f2 | base64 -d`) and compare. |
+| `There is no procedure with the name apoc.util.validate` | An `@authorization` `validate` rule needs APOC. Use a `filter` rule or add APOC ([schema guide](schema-guide.md#authentication-and-authorization-rules-in-v7)). |
+| `Unknown function 'apoc.date.convertFormat'` | Reading a `DateTime` field needs APOC. Store ISO strings, or add APOC. |
+| Startup crash `Cannot read properties of undefined (reading 'kind')` | Usually `extend type Mutation` in an extra schema file. Use `type Mutation { ... }`. |
+| `Unknown directive "@unique"` | Not in v7. Create a constraint in a `SETUP_CYPHER_PATHS` file. |
+| `Invalid argument: validate, error: Expected type to be an object` | The rule's `where` uses the old filter style. Use operators: `sub: { eq: "$jwt.sub" }`. |
+| `Non-list relationship property "x" cannot have non-nullable type` | Single-node relationship fields must be nullable (`author: User`, not `User!`). |
+
 ## From a browser
 
 | Symptom | Cause and fix |

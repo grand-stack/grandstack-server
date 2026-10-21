@@ -1,6 +1,6 @@
 {
   "name": "grandstack-server",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "GraphQL over Neo4j, configured entirely by environment variables and a mounted schema file",
   "scripts": {
     "dev": "tsx watch src/index.ts",

@@ -73,6 +73,36 @@ similar(limit: Int = 8): [Movie!]!
 4. **Regenerate the reference.** `npm run docs:schema` rewrites [schema-reference.md](schema-reference.md). CI fails if the committed file is stale.
 5. **Restart the server.** The schema is read at startup. In Docker you can mount a different file over `/app/schema/schema.graphql` without rebuilding (see [configuration](configuration.md#using-your-own-schema-and-seed)).
 
+## Authentication and authorization rules in v7
+
+These come from building the `grandstack-auth` extension. Rules only work when the server verifies tokens (the `AUTH_*` variables in [configuration](configuration.md)); put them in a separate file loaded with `SCHEMA_EXTRA_PATHS` so the default, open schema still starts.
+
+- **Claims:** declare the token shape once with a `@jwt` type, then use it in rules:
+  ```graphql
+  type JWT @jwt {
+    roles: [String!]! @jwtClaim(path: "roles")
+    sub: String
+  }
+  ```
+- **Require a login or a role** with `@authentication`; `operations` can be `CREATE`, `READ`, `AGGREGATE`, `UPDATE`, `DELETE`, `CREATE_RELATIONSHIP`, `DELETE_RELATIONSHIP`, `SUBSCRIBE`:
+  ```graphql
+  extend type Movie @authentication(operations: [CREATE, UPDATE, DELETE], jwt: { roles: { includes: "editor" } })
+  ```
+  Unauthenticated requests get an `Unauthenticated` error and wrong-role requests get `Forbidden`.
+- **Row-level rules** with `@authorization`. Prefer **`filter`** rules: for anyone not allowed, the row is simply not matched, so an update or delete changes nothing. Compare a relationship to the caller with `$jwt`:
+  ```graphql
+  extend type Review @authorization(filter: [{
+    operations: [UPDATE, DELETE]
+    where: { OR: [{ node: { author: { sub: { eq: "$jwt.sub" } } } }, { jwt: { roles: { includes: "moderator" } } }] }
+  }])
+  ```
+  v7 filters use operators (`sub: { eq: ... }`); the old style (`sub: "$jwt.sub"`) is rejected.
+- **`validate` rules need the APOC plugin** (they call `apoc.util.validate`) and fail with `There is no procedure with the name apoc.util.validate` when it is missing. This stack's Neo4j has no APOC, so the example uses `filter` rules. Add APOC to Neo4j if you need rules that raise an error.
+- **`DateTime` fields also need APOC** to be read (`apoc.date.convertFormat`). The example stores timestamps as ISO 8601 strings instead.
+- **Stop clients rewiring relationships** with `nestedOperations: []` on the field, for example `author: User @relationship(type: "WROTE_REVIEW", direction: IN, nestedOperations: [])`.
+- **Make the author come from the token** by not exposing generated creation: `type Review @node @mutation(operations: [UPDATE, DELETE])` removes `createReviews`, and a custom `@cypher` mutation creates the review using `$jwt.sub`. In `@cypher` statements the token claims are available as `$jwt`.
+- **Other rules we hit:** there is no `@unique` in v7 (create constraints with Cypher in `SETUP_CYPHER_PATHS`); declare custom root mutations with `type Mutation { ... }` in an extra file, not `extend type Mutation`; a relationship field that points to one node must be nullable; `@mutation(operations: [])` removes all generated mutations for a type.
+
 ## What gets generated for each type
 
 For a `@node` type `Movie`, `@neo4j/graphql` adds:

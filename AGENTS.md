@@ -14,7 +14,7 @@ GraphQL API over Neo4j using `@neo4j/graphql` v7 and GraphQL Yoga. Configured by
 - `contains` filters are case-sensitive. Keep `graphql` on 16.x. Pin exact dependency versions.
 - Seed changes need a bumped `// seed-version`. Seed maps use bare keys. See [docs/seeding.md](docs/seeding.md).
 - `Person.actedCount` and `directedCount` are refreshed by a plugin after every mutation; do not maintain them by hand.
-- There is no auth. Do not expose the server publicly.
+- Auth is off unless the three `AUTH_*` variables are set (they must be set together). Rules (`@authentication`/`@authorization`) belong in an extra schema file loaded with `SCHEMA_EXTRA_PATHS`; v7 pitfalls (APOC for `validate` and `DateTime`, no `@unique`, `type Mutation` not `extend`) are in [docs/schema-guide.md](docs/schema-guide.md#authentication-and-authorization-rules-in-v7). Do not expose an open server publicly.
 
 ## Keep the docs true
 When you change behaviour, update the matching doc in the same change: environment variables in `docs/configuration.md` and the table in `src/config.ts` tests, schema changes via `npm run docs:schema`, and new gotchas in `docs/troubleshooting.md`. `npm run docs:check` fails on a stale schema reference or a broken relative link.

@@ -2,7 +2,7 @@
 
 A Docker image that serves GraphQL over Neo4j. You give it a Neo4j connection (environment variables), a GraphQL schema (a file) and optionally some seed data; it gives you a full API with queries, filters, sorting, relationships and create/update/delete. Built on [`@neo4j/graphql`](https://neo4j.com/docs/graphql/) v7, GraphQL Yoga and the Neo4j driver. It is the server half of GRANDstack, where the "A" now stands for Agent: the same API serves people and coding agents.
 
-> **No authentication yet.** Anyone who can reach the endpoint can read, change and delete data. Do not expose it publicly.
+> **Authentication is off by default.** Anyone who can reach the endpoint can read, change and delete data. To require logins, set the `AUTH_*` variables ([configuration](docs/configuration.md#authentication-and-extra-schema)); the `grandstack-auth` repo is a complete example with a gateway, Keycloak and row-level rules. Do not expose an open server publicly.
 
 ## Run it
 
@@ -39,4 +39,4 @@ Working with a coding agent? Start with [AGENTS.md](AGENTS.md).
 
 The bundled data is sample data: titles, casts and relationships are real, but ratings and runtimes are approximate.
 
-Last verified: v0.6.0 with `@neo4j/graphql` 7.6.4, Neo4j 2026.10 community, Node 24 (image) and Node 26 (development).
+Last verified: v0.7.0 with `@neo4j/graphql` 7.6.4, Neo4j 2026.10 community, Node 24 (image) and Node 26 (development).

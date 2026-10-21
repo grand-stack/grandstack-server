@@ -37,6 +37,10 @@ Use `@cypher` ([schema guide](schema-guide.md#computed-fields-with-cypher)). Rem
 2. Bump `// seed-version: N`.
 3. Restart. A database seeded by this server reloads; check the log for `Loaded seed`.
 
+## Add types without touching the base schema
+
+Put them in a new file and load it with `SCHEMA_EXTRA_PATHS=/app/schema/extra.graphql` (mount the file into the image). Use `extend type Movie { ... }` to add fields to existing types. For constraints and indexes the new types need, write idempotent Cypher (`CREATE CONSTRAINT ... IF NOT EXISTS`) in a file listed in `SETUP_CYPHER_PATHS`. This is how `grandstack-auth` adds users, reviews and its access rules.
+
 ## Add a server plugin
 
 Plugins wrap execution. `src/refreshCountsPlugin.ts` is a complete example: it uses `onExecute` with `setExecuteFn` to run code after a mutation. Add yours to the `plugins` array in `src/index.ts`, and write unit tests with fakes like `test/refreshCountsPlugin.test.ts`.

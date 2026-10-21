@@ -6,11 +6,16 @@ import { createYoga } from "graphql-yoga";
 import { loadConfig } from "./config.js";
 import { refreshCounts } from "./counts.js";
 import { useRefreshCounts } from "./refreshCountsPlugin.js";
-import { seedIfNeeded } from "./seed.js";
+import { runSetupCypher, seedIfNeeded } from "./seed.js";
 
 const config = loadConfig();
 const driver = neo4j.driver(config.neo4jUri, neo4j.auth.basic(config.neo4jUsername, config.neo4jPassword));
 await driver.verifyConnectivity({ database: config.neo4jDatabase });
+
+if (config.setupCypherPaths.length > 0) {
+  const n = await runSetupCypher(driver, config.neo4jDatabase, config.setupCypherPaths);
+  console.log(`Ran ${n} setup statement(s)`);
+}
 
 if (config.seed) {
   const decision = await seedIfNeeded(driver, config.neo4jDatabase, config.seedPath, config.seedProbeLabel);
@@ -22,9 +27,17 @@ if (config.seed) {
   console.log(messages[decision]);
 }
 
-const typeDefs = await readFile(config.schemaPath, "utf8");
-const neo4jGraphQL = new Neo4jGraphQL({ typeDefs, driver });
+const typeDefs = (await Promise.all([config.schemaPath, ...config.schemaExtraPaths].map((p) => readFile(p, "utf8")))).join("\n");
+const neo4jGraphQL = new Neo4jGraphQL({
+  typeDefs,
+  driver,
+  // With AUTH_* set, tokens are verified against the JWKS before @authentication/@authorization rules run
+  features: config.auth
+    ? { authorization: { key: { url: config.auth.jwksUrl }, verifyOptions: { issuer: config.auth.issuer, audience: config.auth.audience } } }
+    : undefined,
+});
 const schema = await neo4jGraphQL.getSchema();
+if (config.auth) console.log(`JWT verification on (issuer ${config.auth.issuer})`);
 
 // Create a Yoga instance with the neo4j schema and per-request Neo4j options
 const yoga = createYoga({

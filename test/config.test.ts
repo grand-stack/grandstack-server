@@ -31,6 +31,28 @@ describe("generalisation settings", () => {
   });
 });
 
+describe("auth and extra schema settings", () => {
+  const base = { NEO4J_URI: "a", NEO4J_PASSWORD: "b" };
+  const auth = { AUTH_JWKS_URL: "http://kc:8080/certs", AUTH_ISSUER: "http://localhost:8081/realms/x", AUTH_AUDIENCE: "api" };
+  it("is off by default", () => {
+    expect(loadConfig(base)).toMatchObject({ auth: undefined, schemaExtraPaths: [], setupCypherPaths: [] });
+  });
+  it("turns on when all three auth variables are set", () => {
+    expect(loadConfig({ ...base, ...auth }).auth).toEqual({ jwksUrl: auth.AUTH_JWKS_URL, issuer: auth.AUTH_ISSUER, audience: "api" });
+  });
+  it("refuses a partial auth configuration and names what is missing", () => {
+    expect(() => loadConfig({ ...base, AUTH_JWKS_URL: auth.AUTH_JWKS_URL })).toThrow(/missing: AUTH_ISSUER, AUTH_AUDIENCE/);
+  });
+  it("requires an http(s) JWKS URL", () => {
+    expect(() => loadConfig({ ...base, ...auth, AUTH_JWKS_URL: "kc/certs" })).toThrow(/http\(s\) URL/);
+  });
+  it("splits extra schema and setup Cypher paths", () => {
+    expect(loadConfig({ ...base, SCHEMA_EXTRA_PATHS: " a.graphql, b.graphql ,", SETUP_CYPHER_PATHS: "x.cypher" })).toMatchObject({
+      schemaExtraPaths: ["a.graphql", "b.graphql"], setupCypherPaths: ["x.cypher"],
+    });
+  });
+});
+
 describe("splitStatements", () => {
   it("splits on terminating semicolons and drops comment-only chunks", () => {
     expect(splitStatements("// hi\nCREATE (a);\nCREATE (b);\n// end\n")).toEqual(["// hi\nCREATE (a)", "CREATE (b)"]);

@@ -11,6 +11,12 @@ export interface Config {
   refreshCounts: boolean;
   port: number;
   corsOrigin: string;
+  /** All three set: verify JWTs with this JWKS and enable `@authentication`/`@authorization`. */
+  auth?: { jwksUrl: string; issuer: string; audience: string };
+  /** Extra schema files appended to the base schema (new types, `extend type`). */
+  schemaExtraPaths: string[];
+  /** Cypher files run at every start (idempotent setup such as `CREATE CONSTRAINT ... IF NOT EXISTS`). */
+  setupCypherPaths: string[];
 }
 
 type Env = Record<string, string | undefined>;
@@ -23,6 +29,15 @@ export function loadConfig(env: Env = process.env): Config {
   const port = Number(env.PORT ?? 4000);
   if (!Number.isInteger(port) || port < 1 || port > 65535) {
     throw new Error(`PORT must be an integer between 1 and 65535, got "${env.PORT}"`);
+  }
+  const authVars = ["AUTH_JWKS_URL", "AUTH_ISSUER", "AUTH_AUDIENCE"] as const;
+  const authSet = authVars.filter((k) => env[k]);
+  if (authSet.length > 0 && authSet.length < authVars.length) {
+    const missingAuth = authVars.filter((k) => !env[k]);
+    throw new Error(`AUTH_JWKS_URL, AUTH_ISSUER and AUTH_AUDIENCE must be set together; missing: ${missingAuth.join(", ")}`);
+  }
+  if (env.AUTH_JWKS_URL && !/^https?:\/\//.test(env.AUTH_JWKS_URL)) {
+    throw new Error(`AUTH_JWKS_URL must be an http(s) URL, got "${env.AUTH_JWKS_URL}"`);
   }
   const label = env.SEED_PROBE_LABEL ?? "Movie";
   if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(label)) {
@@ -41,5 +56,10 @@ export function loadConfig(env: Env = process.env): Config {
     refreshCounts: (env.REFRESH_COUNTS ?? "true").toLowerCase() !== "false",
     port,
     corsOrigin: env.CORS_ORIGIN ?? "http://localhost:3000",
+    auth: authSet.length === authVars.length
+      ? { jwksUrl: env.AUTH_JWKS_URL!, issuer: env.AUTH_ISSUER!, audience: env.AUTH_AUDIENCE! }
+      : undefined,
+    schemaExtraPaths: (env.SCHEMA_EXTRA_PATHS ?? "").split(",").map((p) => p.trim()).filter(Boolean),
+    setupCypherPaths: (env.SETUP_CYPHER_PATHS ?? "").split(",").map((p) => p.trim()).filter(Boolean),
   };
 }

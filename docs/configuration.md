@@ -16,10 +16,15 @@ The server is configured only through environment variables (read once at startu
 | `SEED_PATH` | `seed/movies.cypher` | no | Seed Cypher file ([format and rules](seeding.md)). |
 | `SEED_PROBE_LABEL` | `Movie` | no | Node label used to detect existing data. Set it to your main entity's label. Letters, digits and underscore only. |
 | `REFRESH_COUNTS` | `true` | no | `false` turns off the plugin that recalculates `Person` counts after mutations. |
+| `AUTH_JWKS_URL` | none | no | URL of the identity provider's JWKS (public signing keys). Must be reachable **from the server**. With the next two, turns on JWT verification and `@authentication`/`@authorization`. |
+| `AUTH_ISSUER` | none | no | Expected token issuer (`iss`), exactly as it appears in tokens. |
+| `AUTH_AUDIENCE` | none | no | Expected token audience (`aud`). |
+| `SCHEMA_EXTRA_PATHS` | none | no | Comma-separated extra `.graphql` files appended to the base schema (new types, `extend type`). |
+| `SETUP_CYPHER_PATHS` | none | no | Comma-separated Cypher files run at **every** start, for idempotent setup such as `CREATE CONSTRAINT ... IF NOT EXISTS`. |
 | `PORT` | `4000` | no | HTTP port. |
 | `CORS_ORIGIN` | `http://localhost:3000` | no | Allowed browser origin(s): one origin, a comma-separated list, or `*`. With `*`, credentials are not allowed. |
 
-A missing required variable, a bad `PORT` or a bad `SEED_PROBE_LABEL` stops startup with a message that names the problem. Booleans accept `true` or `false` in any letter case.
+The three `AUTH_*` variables must be set together; setting only some stops startup and names the missing ones. Without them the server does no authentication (the default). A missing required variable, a bad `PORT`, a bad `SEED_PROBE_LABEL` or a non-http(s) `AUTH_JWKS_URL` also stops startup with a message that names the problem. Booleans accept `true` or `false` in any letter case.
 
 ## Files
 
@@ -66,3 +71,9 @@ Versions are semver git tags (`v0.6.0`) with a matching image tag. The umbrella 
 ## CORS
 
 The browser calls the server directly, so the web app's origin must be allowed. If the browser console shows a CORS error, set `CORS_ORIGIN` to the exact origin of the web app (scheme, host and port), for example `http://localhost:3000`.
+
+## Authentication and extra schema
+
+The server itself stays auth-agnostic. With the `AUTH_*` variables set it verifies the `Authorization: Bearer` token on every request (signature from the JWKS, expiry, issuer, audience) and makes the decoded claims available to `@authentication` and `@authorization` rules in the schema. Without them those directives do not work, which is why rules are added through `SCHEMA_EXTRA_PATHS` only when auth is on.
+
+The `grandstack-auth` repository is the worked example: it supplies a gateway, a Keycloak dev realm, and `schema/auth.graphql` (users, reviews, rules), which the umbrella's `compose.auth.yaml` mounts and loads through these settings. See that repo's docs, and [the schema guide](schema-guide.md#authentication-and-authorization-rules-in-v7) for the syntax and the pitfalls we found.
