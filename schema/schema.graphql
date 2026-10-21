@@ -1,0 +1,41 @@
+"""A film in the Movies graph."""
+type Movie @node {
+  """Film title. Unique within the dataset."""
+  title: String!
+  """Tagline shown on the poster."""
+  tagline: String
+  """Year the film was released."""
+  released: Int
+  """Genres the film belongs to."""
+  genres: [Genre!]! @relationship(type: "IN_GENRE", direction: OUT)
+  """People who acted in the film."""
+  actors: [Person!]! @relationship(type: "ACTED_IN", direction: IN, properties: "ActedIn")
+  """People who directed the film."""
+  directors: [Person!]! @relationship(type: "DIRECTED", direction: IN)
+}
+
+"""A person who acted in or directed films."""
+type Person @node {
+  """Full name. Unique within the dataset."""
+  name: String!
+  """Year the person was born."""
+  born: Int
+  """Films the person acted in."""
+  actedIn: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT, properties: "ActedIn")
+  """Films the person directed."""
+  directed: [Movie!]! @relationship(type: "DIRECTED", direction: OUT)
+}
+
+"""A film genre."""
+type Genre @node {
+  """Genre name, for example Drama."""
+  name: String!
+  """Films in this genre."""
+  movies: [Movie!]! @relationship(type: "IN_GENRE", direction: IN)
+}
+
+"""Properties on the ACTED_IN relationship."""
+type ActedIn @relationshipProperties {
+  """Character names played in the film."""
+  roles: [String!]!
+}

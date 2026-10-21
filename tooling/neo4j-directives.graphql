@@ -1,0 +1,6 @@
+# Minimal stubs so GraphQL ESLint and Inspector can load the schema.
+# Add a declaration here when schema/schema.graphql uses another @neo4j/graphql directive.
+enum RelationshipDirection { IN OUT }
+directive @relationship(type: String!, direction: RelationshipDirection!, properties: String) on FIELD_DEFINITION
+directive @relationshipProperties on OBJECT
+directive @node(labels: [String!], primaryKey: String) on OBJECT

@@ -1,0 +1,24 @@
+name: ci
+on: [push, pull_request]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-node@v4
+        with: { node-version: 24, cache: npm }
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      - name: Breaking-change check
+        if: github.event_name == 'pull_request'
+        run: npx graphql-inspector diff "git:origin/${{ github.base_ref }}:schema/schema.graphql" schema/schema.graphql
+      - run: docker build -t grandstack-server:ci .
+      - name: Smoke test
+        run: |
+          docker network create gs
+          docker run -d --name neo4j --network gs -e NEO4J_AUTH=neo4j/ci-password neo4j:2026.10-community
+          until docker exec neo4j cypher-shell -u neo4j -p ci-password 'RETURN 1' >/dev/null 2>&1; do sleep 3; done
+          docker run -d --name server --network gs -p 4000:4000 -e NEO4J_URI=bolt://neo4j:7687 -e NEO4J_PASSWORD=ci-password grandstack-server:ci
+          until curl -sf localhost:4000/graphql -H 'content-type: application/json' -d '{"query":"{ movies(limit:1){ title } }"}' | grep -q title; do sleep 2; done
