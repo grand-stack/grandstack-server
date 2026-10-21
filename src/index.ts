@@ -22,6 +22,8 @@ const schema = await neo4jGraphQL.getSchema();
 // Create a Yoga instance with the neo4j schema and per-request Neo4j options
 const yoga = createYoga({
   schema,
+  // Comma-separated origins, or * for any
+  cors: { origin: config.corsOrigin.split(",").map((o) => o.trim()), credentials: config.corsOrigin !== "*" },
   context: ({ request }) => ({
     executionContext: driver,
     token: request.headers.get("authorization") ?? undefined,

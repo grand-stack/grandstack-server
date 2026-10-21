@@ -5,7 +5,7 @@ import { splitStatements } from "../src/seed.js";
 describe("loadConfig", () => {
   it("applies defaults", () => {
     const c = loadConfig({ NEO4J_URI: "bolt://x:7687", NEO4J_PASSWORD: "pw" });
-    expect(c).toMatchObject({ neo4jUsername: "neo4j", neo4jDatabase: "neo4j", port: 4000, seed: true, neo4jAddCypherVersionPrefix: false });
+    expect(c).toMatchObject({ neo4jUsername: "neo4j", neo4jDatabase: "neo4j", port: 4000, seed: true, corsOrigin: "http://localhost:3000", neo4jAddCypherVersionPrefix: false });
   });
   it("reports every missing required variable", () => {
     expect(() => loadConfig({})).toThrow(/NEO4J_URI, NEO4J_PASSWORD/);

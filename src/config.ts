@@ -8,6 +8,7 @@ export interface Config {
   seedPath: string;
   seed: boolean;
   port: number;
+  corsOrigin: string;
 }
 
 type Env = Record<string, string | undefined>;
@@ -31,5 +32,6 @@ export function loadConfig(env: Env = process.env): Config {
     seedPath: env.SEED_PATH ?? "seed/movies.cypher",
     seed: (env.SEED ?? "true").toLowerCase() !== "false",
     port,
+    corsOrigin: env.CORS_ORIGIN ?? "http://localhost:3000",
   };
 }
