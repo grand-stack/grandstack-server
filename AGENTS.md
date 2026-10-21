@@ -7,7 +7,7 @@ GraphQL API over Neo4j using `@neo4j/graphql` v7 and GraphQL Yoga. Configured on
 - Local dev against a running Neo4j: set `NEO4J_URI`, `NEO4J_PASSWORD`, then `npm run dev`.
 
 ## Environment
-`NEO4J_URI` and `NEO4J_PASSWORD` are required. Optional: `NEO4J_USERNAME` (neo4j), `NEO4J_DATABASE` (neo4j), `SCHEMA_PATH` (schema/schema.graphql), `SEED` (true), `SEED_PATH` (seed/movies.cypher), `PORT` (4000).
+`NEO4J_URI` and `NEO4J_PASSWORD` are required. Optional: `NEO4J_USERNAME` (neo4j), `NEO4J_DATABASE` (neo4j), `NEO4J_CYPHER_VERSION_PREFIX` (false; true adds the Cypher version prefix to queries), `SCHEMA_PATH` (schema/schema.graphql), `SEED` (true), `SEED_PATH` (seed/movies.cypher), `PORT` (4000).
 The Movies seed loads only when the target database has no `Movie` nodes. `SEED=false` disables it.
 
 ## Change the schema

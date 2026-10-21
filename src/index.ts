@@ -19,10 +19,22 @@ const typeDefs = await readFile(config.schemaPath, "utf8");
 const neo4jGraphQL = new Neo4jGraphQL({ typeDefs, driver });
 const schema = await neo4jGraphQL.getSchema();
 
+// Create a Yoga instance with the neo4j schema and per-request Neo4j options
 const yoga = createYoga({
   schema,
-  context: () => ({ sessionConfig: { database: config.neo4jDatabase } }),
+  context: ({ request }) => ({
+    executionContext: driver,
+    token: request.headers.get("authorization") ?? undefined,
+    sessionConfig: {
+      database: config.neo4jDatabase, // Set the database
+    },
+    cypherQueryOptions: {
+      // false (default) lets the database choose its Cypher version; true prefixes queries with the library's version
+      addVersionPrefix: config.neo4jAddCypherVersionPrefix,
+    },
+  }),
 });
+
 const server = createServer(yoga);
 server.listen(config.port, () => {
   console.log(`GraphQL ready at http://localhost:${config.port}${yoga.graphqlEndpoint}`);
