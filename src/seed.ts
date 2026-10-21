@@ -28,14 +28,22 @@ export function decideSeed(movieCount: number, storedVersion: number | null, scr
   return movieCount === 0 ? "load" : "skip-foreign";
 }
 
-/** Loads the seed script when appropriate. Returns the decision taken. */
-export async function seedIfNeeded(driver: Driver, database: string, seedPath: string): Promise<SeedDecision> {
+/**
+ * Loads the seed script when appropriate. Returns the decision taken.
+ * `probeLabel` is the node label used to detect existing data (the label of your main entity).
+ */
+export async function seedIfNeeded(
+  driver: Driver,
+  database: string,
+  seedPath: string,
+  probeLabel = "Movie",
+): Promise<SeedDecision> {
   const script = await readFile(seedPath, "utf8");
   const version = seedVersion(script);
   const session = driver.session({ database });
   try {
     const res = await session.run(
-      "OPTIONAL MATCH (meta:SeedMeta {name: 'movies'}) WITH meta OPTIONAL MATCH (m:Movie) RETURN meta.version AS version, count(m) AS n",
+      `OPTIONAL MATCH (meta:SeedMeta {name: 'movies'}) WITH meta OPTIONAL MATCH (m:\`${probeLabel}\`) RETURN meta.version AS version, count(m) AS n`,
     );
     const stored = res.records[0].get("version");
     const decision = decideSeed(res.records[0].get("n").toNumber(), stored === null ? null : Number(stored), version);

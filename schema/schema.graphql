@@ -41,9 +41,9 @@ type Person @node {
   name: String!
   """Year the person was born. Only known for some people."""
   born: Int
-  """Number of films the person acted in. Stored when the seed loads, so it is not updated by API mutations."""
+  """Number of films the person acted in. Stored on the node and recalculated by the server after every mutation."""
   actedCount: Int
-  """Number of films the person directed. Stored when the seed loads, so it is not updated by API mutations."""
+  """Number of films the person directed. Stored on the node and recalculated by the server after every mutation."""
   directedCount: Int
   """Films the person acted in."""
   actedIn: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT, properties: "ActedIn")

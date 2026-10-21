@@ -18,6 +18,19 @@ describe("loadConfig", () => {
   });
 });
 
+describe("generalisation settings", () => {
+  const base = { NEO4J_URI: "a", NEO4J_PASSWORD: "b" };
+  it("defaults to the Movie probe label and refreshing counts", () => {
+    expect(loadConfig(base)).toMatchObject({ seedProbeLabel: "Movie", refreshCounts: true });
+  });
+  it("accepts a custom label and can switch the counts refresh off", () => {
+    expect(loadConfig({ ...base, SEED_PROBE_LABEL: "Book", REFRESH_COUNTS: "false" })).toMatchObject({ seedProbeLabel: "Book", refreshCounts: false });
+  });
+  it("rejects a label that could break the Cypher", () => {
+    expect(() => loadConfig({ ...base, SEED_PROBE_LABEL: "Book) DETACH DELETE (n" })).toThrow(/SEED_PROBE_LABEL/);
+  });
+});
+
 describe("splitStatements", () => {
   it("splits on terminating semicolons and drops comment-only chunks", () => {
     expect(splitStatements("// hi\nCREATE (a);\nCREATE (b);\n// end\n")).toEqual(["// hi\nCREATE (a)", "CREATE (b)"]);

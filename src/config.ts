@@ -7,6 +7,8 @@ export interface Config {
   schemaPath: string;
   seedPath: string;
   seed: boolean;
+  seedProbeLabel: string;
+  refreshCounts: boolean;
   port: number;
   corsOrigin: string;
 }
@@ -22,6 +24,10 @@ export function loadConfig(env: Env = process.env): Config {
   if (!Number.isInteger(port) || port < 1 || port > 65535) {
     throw new Error(`PORT must be an integer between 1 and 65535, got "${env.PORT}"`);
   }
+  const label = env.SEED_PROBE_LABEL ?? "Movie";
+  if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(label)) {
+    throw new Error(`SEED_PROBE_LABEL must be a plain Neo4j label (letters, digits, underscore), got "${label}"`);
+  }
   return {
     neo4jUri: env.NEO4J_URI!,
     neo4jUsername: env.NEO4J_USERNAME ?? "neo4j",
@@ -31,6 +37,8 @@ export function loadConfig(env: Env = process.env): Config {
     schemaPath: env.SCHEMA_PATH ?? "schema/schema.graphql",
     seedPath: env.SEED_PATH ?? "seed/movies.cypher",
     seed: (env.SEED ?? "true").toLowerCase() !== "false",
+    seedProbeLabel: env.SEED_PROBE_LABEL ?? "Movie",
+    refreshCounts: (env.REFRESH_COUNTS ?? "true").toLowerCase() !== "false",
     port,
     corsOrigin: env.CORS_ORIGIN ?? "http://localhost:3000",
   };

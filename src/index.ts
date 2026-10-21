@@ -13,11 +13,11 @@ const driver = neo4j.driver(config.neo4jUri, neo4j.auth.basic(config.neo4jUserna
 await driver.verifyConnectivity({ database: config.neo4jDatabase });
 
 if (config.seed) {
-  const decision = await seedIfNeeded(driver, config.neo4jDatabase, config.seedPath);
+  const decision = await seedIfNeeded(driver, config.neo4jDatabase, config.seedPath, config.seedProbeLabel);
   const messages = {
-    load: "Loaded Movies seed",
-    "skip-current": "Movies seed already loaded, skipping",
-    "skip-foreign": "Database already has Movie data not loaded by this seed, skipping",
+    load: "Loaded seed",
+    "skip-current": "Seed already loaded, skipping",
+    "skip-foreign": `Database already has ${config.seedProbeLabel} data not loaded by this seed, skipping`,
   };
   console.log(messages[decision]);
 }
@@ -29,7 +29,7 @@ const schema = await neo4jGraphQL.getSchema();
 // Create a Yoga instance with the neo4j schema and per-request Neo4j options
 const yoga = createYoga({
   schema,
-  plugins: [useRefreshCounts(() => refreshCounts(driver, config.neo4jDatabase))],
+  plugins: config.refreshCounts ? [useRefreshCounts(() => refreshCounts(driver, config.neo4jDatabase))] : [],
   // Comma-separated origins, or * for any
   cors: { origin: config.corsOrigin.split(",").map((o) => o.trim()), credentials: config.corsOrigin !== "*" },
   context: ({ request }) => ({

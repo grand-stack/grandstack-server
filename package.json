@@ -8,7 +8,9 @@
     "start": "node dist/index.js",
     "test": "vitest run",
     "lint": "eslint schema/schema.graphql && tsc --noEmit",
-    "schema:check": "sh scripts/schema-check.sh"
+    "schema:check": "sh scripts/schema-check.sh",
+    "docs:schema": "node scripts/generate-schema-docs.mjs",
+    "docs:check": "node scripts/generate-schema-docs.mjs --check && node scripts/check-links.mjs"
   },
   "license": "Apache-2.0",
   "type": "module",

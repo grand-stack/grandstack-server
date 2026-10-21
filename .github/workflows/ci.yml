@@ -11,6 +11,8 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm test
+      - name: Docs are up to date
+        run: npm run docs:check
       - name: Breaking-change check
         if: github.event_name == 'pull_request'
         run: sh scripts/schema-check.sh "origin/${{ github.base_ref }}"
