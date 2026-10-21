@@ -20,3 +20,6 @@ The Movies seed loads into an empty database, and reloads when `// seed-version:
 - Pin exact dependency versions. `graphql` must stay on 16.x (peer dependency of `@neo4j/graphql`).
 - Community Neo4j has a single database, so the default is `neo4j`.
 - Versioning: semver git tags with a matching image tag.
+
+## Derived data
+`Person.actedCount` and `Person.directedCount` are stored by the last seed statement so they can be sorted and filtered in plain GraphQL. They are not updated by API mutations; recompute them (see the end of `seed/movies.cypher`) or bump the seed version after changing the graph. `Movie.similar` and `Person.collaborators` are `@cypher` fields and always reflect the graph. `Collaboration` returns a name rather than a Person because v7 could not resolve a node nested inside a custom `@cypher` return type.

@@ -1,5 +1,5 @@
 // Movies seed (sample data, ratings approximate). Statements end with a semicolon at end of line.
-// seed-version: 2
+// seed-version: 3
 CREATE CONSTRAINT movie_title IF NOT EXISTS FOR (m:Movie) REQUIRE m.title IS UNIQUE;
 CREATE CONSTRAINT person_name IF NOT EXISTS FOR (p:Person) REQUIRE p.name IS UNIQUE;
 CREATE CONSTRAINT genre_name IF NOT EXISTS FOR (g:Genre) REQUIRE g.name IS UNIQUE;
@@ -54,3 +54,4 @@ MATCH (p:Person {name: "Tom Hanks"}) SET p.born = 1956;
 MATCH (p:Person {name: "Meg Ryan"}) SET p.born = 1961;
 MATCH (p:Person {name: "Nora Ephron"}) SET p.born = 1941;
 MATCH (p:Person {name: "Robert Zemeckis"}) SET p.born = 1952;
+MATCH (p:Person) SET p.actedCount = COUNT { (p)-[:ACTED_IN]->() }, p.directedCount = COUNT { (p)-[:DIRECTED]->() };

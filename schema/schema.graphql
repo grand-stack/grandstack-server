@@ -39,12 +39,42 @@ type Movie @node {
 type Person @node {
   """Full name. Unique within the dataset."""
   name: String!
-  """Year the person was born."""
+  """Year the person was born. Only known for some people."""
   born: Int
+  """Number of films the person acted in. Stored when the seed loads, so it is not updated by API mutations."""
+  actedCount: Int
+  """Number of films the person directed. Stored when the seed loads, so it is not updated by API mutations."""
+  directedCount: Int
   """Films the person acted in."""
   actedIn: [Movie!]! @relationship(type: "ACTED_IN", direction: OUT, properties: "ActedIn")
   """Films the person directed."""
   directed: [Movie!]! @relationship(type: "DIRECTED", direction: OUT)
+  """
+  People this person has worked with most, ranked by number of shared films (acting or directing).
+  """
+  collaborators(
+    """Maximum number of collaborators to return."""
+    limit: Int = 8
+  ): [Collaboration!]!
+    @cypher(
+      statement: """
+      MATCH (this)-[:ACTED_IN|DIRECTED]->(m:Movie)<-[:ACTED_IN|DIRECTED]-(other:Person)
+      WHERE other <> this
+      WITH other, count(DISTINCT m) AS films
+      ORDER BY films DESC, other.name
+      LIMIT $limit
+      RETURN {name: other.name, films: films} AS result
+      """
+      columnName: "result"
+    )
+}
+
+"""A person someone has worked with, and how many films they share."""
+type Collaboration {
+  """Name of the collaborator. Look the person up by this name."""
+  name: String!
+  """Number of films the two people worked on together."""
+  films: Int!
 }
 
 """A film genre."""
