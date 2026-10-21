@@ -5,7 +5,7 @@ GraphQL API over Neo4j using `@neo4j/graphql` v7 and GraphQL Yoga. Configured by
 ## Commands
 - Run the whole stack: `cd ../grandstack && docker compose up --build` (GraphQL at http://localhost:4000/graphql).
 - Local dev against a running Neo4j: `NEO4J_URI=bolt://localhost:7687 NEO4J_PASSWORD=... npm run dev`.
-- Before you finish any change: `npm run lint && npm test && npm run schema:check && npm run docs:check`.
+- Before you finish any change: `npm run lint && npm test && npm run schema:check && npm run docs:check`. `schema:check` needs a git checkout with the schema committed at `HEAD`; `docs:check` fails until you run `npm run docs:schema` after a schema change.
 
 ## Rules that are easy to get wrong
 - Every type, field and argument in `schema/schema.graphql` needs a `"""description"""` (lint enforces it).

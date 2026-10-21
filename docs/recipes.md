@@ -11,10 +11,10 @@ Example: add `country: String` to `Movie`.
    """Country of production."""
    country: String
    ```
-2. Run `npm run lint` (fails if you forgot the description) and `npm run schema:check` (adding a field is not breaking).
-3. Run `npm run docs:schema` to refresh the reference.
-4. If the field should be in the sample data, add `SET m.country = ...` in the seed generator or file and bump `// seed-version`.
-5. Restart the server. Check: `curl -s localhost:4000/graphql -H 'content-type: application/json' -d '{"query":"{ movies(limit:1){ title country } }"}'`.
+2. Run `npm run lint` (fails if you forgot the description) and `npm run schema:check` (adding a field is not breaking). `schema:check` compares with the schema committed at git `HEAD`, so it needs a git checkout and only means something if you committed the baseline before editing; outside git it stops with a message saying so.
+3. Run `npm run docs:schema` to refresh the reference, and commit it. (`npm run docs:check` fails until you have run this.)
+4. If the field should be in the sample data, bump `// seed-version` and add statements to `seed/movies.cypher`. The bundled file was produced by a one-off script that is not shipped in the repo, so edit the file directly: to set a property on a few existing films add a line like `MATCH (m:Movie {title: "The Matrix"}) SET m.country = "USA";` before the final derived-counts statement (the file already does this for `Person.born`).
+5. Restart the server: `docker compose up --build server` in the `grandstack` repo (the schema is copied into the image), or, without a rebuild, mount your schema file as shown in [configuration](configuration.md#using-your-own-schema-and-seed). A bumped seed only reloads on a database that has the seed marker; with `SEED=false` you must write the data yourself. Check: `curl -s localhost:4000/graphql -H 'content-type: application/json' -d '{"query":"{ movies(limit:1){ title country } }"}'`.
 6. The web app needs `npm run codegen` to see the field (see `docs/recipes.md` in the `grandstack-web` repo).
 
 ## Add a relationship

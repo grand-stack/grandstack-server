@@ -20,7 +20,7 @@ FOREACH (g IN f.genres | MERGE (ge:Genre {name: g}) MERGE (m)-[:IN_GENRE]->(ge))
 
 - **Use `MERGE`, not `CREATE`, for data.** Reloading is then safe and idempotent.
 - When you write maps in Cypher, keys are bare words (`title:`), not quoted strings.
-- The bundled file is **generated**: it is a batch of `UNWIND` statements, 20 films each, followed by the derived-counts statement. Treat it as data, not hand-written code.
+- The bundled file was **generated** by a one-off script that is not in the repo: it is a batch of `UNWIND` statements (20 films each), a few `SET` statements for taglines and birth years, and the derived-counts statement. Edit it directly; to change a few records add `MATCH ... SET ...;` lines before the last statement.
 - Unique constraints (`REQUIRE ... IS UNIQUE`) are what make titles and names usable as keys. They are also why creating a duplicate returns `Constraint validation failed`.
 
 ## When the server loads it

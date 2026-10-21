@@ -33,6 +33,8 @@ The bundled Movies seed loads into an empty database on first start. See [config
 | [Recipes](docs/recipes.md) | Step-by-step common changes |
 | [Troubleshooting](docs/troubleshooting.md) | Errors we hit and their fixes |
 
+`npm ci` prints `npm warn install-scripts` notices; they are harmless.
+
 Working with a coding agent? Start with [AGENTS.md](AGENTS.md).
 
 The bundled data is sample data: titles, casts and relationships are real, but ratings and runtimes are approximate.
