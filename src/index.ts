@@ -4,6 +4,8 @@ import { Neo4jGraphQL } from "@neo4j/graphql";
 import neo4j from "neo4j-driver";
 import { createYoga } from "graphql-yoga";
 import { loadConfig } from "./config.js";
+import { refreshCounts } from "./counts.js";
+import { useRefreshCounts } from "./refreshCountsPlugin.js";
 import { seedIfNeeded } from "./seed.js";
 
 const config = loadConfig();
@@ -27,6 +29,7 @@ const schema = await neo4jGraphQL.getSchema();
 // Create a Yoga instance with the neo4j schema and per-request Neo4j options
 const yoga = createYoga({
   schema,
+  plugins: [useRefreshCounts(() => refreshCounts(driver, config.neo4jDatabase))],
   // Comma-separated origins, or * for any
   cors: { origin: config.corsOrigin.split(",").map((o) => o.trim()), credentials: config.corsOrigin !== "*" },
   context: ({ request }) => ({

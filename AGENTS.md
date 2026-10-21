@@ -22,4 +22,9 @@ The Movies seed loads into an empty database, and reloads when `// seed-version:
 - Versioning: semver git tags with a matching image tag.
 
 ## Derived data
-`Person.actedCount` and `Person.directedCount` are stored by the last seed statement so they can be sorted and filtered in plain GraphQL. They are not updated by API mutations; recompute them (see the end of `seed/movies.cypher`) or bump the seed version after changing the graph. `Movie.similar` and `Person.collaborators` are `@cypher` fields and always reflect the graph. `Collaboration` returns a name rather than a Person because v7 could not resolve a node nested inside a custom `@cypher` return type.
+`Person.actedCount` and `directedCount` are stored on the nodes so people can be sorted and filtered by film count in plain GraphQL. The seed sets them, and `src/refreshCountsPlugin.ts` recalculates them for everyone after every mutation (before the response is sent), so any client, including agents, keeps them correct. The recalculation covers all people on each mutation, which is fine for the sample size. `Movie.similar` and `Person.collaborators` are `@cypher` fields and always reflect the graph. `Collaboration` returns a name rather than a Person because v7 could not resolve a node nested inside a custom `@cypher` return type.
+
+## Mutating relationships
+- Scalar updates use set operators: `update: { tagline: { set: "..." } }`.
+- Updating a relationship list in one `updateMovies`: do not "disconnect all, then connect" in the same mutation, because the disconnect runs after the connect and removes the new links. Send a diff instead: `disconnect` the removed ones, `connect` or `create` the added ones, and a separate `{ update: { where, edge: { roles: { set: [...] } } } }` entry per changed role.
+- `delete*` mutations detach relationships.
