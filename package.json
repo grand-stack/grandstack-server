@@ -8,7 +8,7 @@
     "start": "node dist/index.js",
     "test": "vitest run",
     "lint": "eslint schema/schema.graphql && tsc --noEmit",
-    "schema:check": "graphql-inspector diff \"git:HEAD:schema/schema.graphql\" schema/schema.graphql"
+    "schema:check": "sh scripts/schema-check.sh"
   },
   "license": "Apache-2.0",
   "type": "module",

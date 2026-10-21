@@ -13,7 +13,7 @@ jobs:
       - run: npm test
       - name: Breaking-change check
         if: github.event_name == 'pull_request'
-        run: npx graphql-inspector diff "git:origin/${{ github.base_ref }}:schema/schema.graphql" schema/schema.graphql
+        run: sh scripts/schema-check.sh "origin/${{ github.base_ref }}"
       - run: docker build -t grandstack-server:ci .
       - name: Smoke test
         run: |

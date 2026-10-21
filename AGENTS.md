@@ -13,7 +13,7 @@ The Movies seed loads only when the target database has no `Movie` nodes. `SEED=
 ## Change the schema
 1. Edit `schema/schema.graphql`. Every type, field and argument needs a `"""description"""`.
 2. Types need `@node` (required by v7). If you use a new `@neo4j/graphql` directive, add a stub to `tooling/neo4j-directives.graphql`.
-3. Run `npm run lint` (GraphQL ESLint + tsc), `npm test`, and `npm run schema:check` (breaking changes against git HEAD).
+3. Run `npm run lint` (GraphQL ESLint + tsc), `npm test`, and `npm run schema:check [ref]` (breaking changes against a git ref, default HEAD).
 4. Restart the server; the schema is read at startup, so mounting a different file needs no rebuild.
 
 ## Conventions
