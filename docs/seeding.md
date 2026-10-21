@@ -27,6 +27,15 @@ FOREACH (g IN f.genres | MERGE (ge:Genre {name: g}) MERGE (m)-[:IN_GENRE]->(ge))
 
 The decision is made by `decideSeed` in `src/seed.ts` using three facts: how many nodes with the **probe label** exist (`SEED_PROBE_LABEL`, default `Movie`), the version stored in a marker node `(:SeedMeta {name: 'movies'})`, and the `// seed-version: N` header in the file (1 if absent).
 
+[![Seed decision: with seeding on, the server checks for a SeedMeta marker and for nodes with the probe label, and loads into an empty database, reloads when the seed file is newer, skips when current, and leaves data it did not load alone.](diagrams/seed-decision.svg)](diagrams/seed-decision.svg)
+
+*Figure: what the server does with the seed file on start. Click the image for full size; the numbered notes below carry the same information as text.*
+
+1. **Seeding on.** Everything below happens only when `SEED` is not `false`. The seed file's `// seed-version: N` header gives its version (1 if missing).
+2. **Two facts from Neo4j.** Is there a `(:SeedMeta {name: 'movies'})` marker and with what version, and how many nodes carry the probe label (`SEED_PROBE_LABEL`, default `Movie`).
+3. **Reload by bumping the version.** If the marker exists and the file's version is newer, the seed loads again (it uses `MERGE`, so this is safe) and the marker is updated. Same or older: skip.
+4. **Foreign data is protected.** No marker but nodes with the probe label exist: they are someone else's data, so nothing is loaded. An empty database loads and gets a marker.
+
 | Database state | Result |
 | --- | --- |
 | No marker, no nodes with the probe label | **Load**, then write the marker with the file's version. |

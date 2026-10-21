@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 400" width="1000" height="400" role="img" aria-labelledby="t d" font-family='system-ui, -apple-system, "Segoe UI", Roboto, sans-serif'><title id="t">The path every request takes through grandstack-server</title><desc id="d">A request passes the Yoga server's CORS check, gets a per-request context, passes the counts plugin if it is a mutation, is translated to Cypher by the Neo4j GraphQL library, and runs through the driver on Neo4j. The result comes back as a GraphQL JSON response.</desc><defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/></marker><marker id="arrS" viewBox="0 0 10 10" refX="1" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/></marker></defs><rect x="0.75" y="0.75" width="998.5" height="398.5" rx="12" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+<rect x="28" y="36" width="215" height="118" rx="8" fill="#e3f1fa" stroke="#0a6190" stroke-width="1.5"/>
+<text x="135.5" y="58" font-size="14.5" font-weight="650" text-anchor="middle" fill="#0f2233">client</text>
+<text x="135.5" y="78.5" font-size="12.5" font-weight="400" text-anchor="middle" fill="#475569">POST /graphql</text>
+<rect x="271" y="36" width="215" height="118" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.5"/>
+<text x="378.5" y="58" font-size="14.5" font-weight="650" text-anchor="middle" fill="#0f2233">Yoga</text>
+<text x="378.5" y="78.5" font-size="12.5" font-weight="400" text-anchor="middle" fill="#475569">CORS check:</text>
+<text x="378.5" y="95.0" font-size="12.5" font-weight="400" text-anchor="middle" fill="#475569">only the web origin</text>
+<rect x="514" y="36" width="215" height="118" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.5"/>
+<text x="621.5" y="58" font-size="14.5" font-weight="650" text-anchor="middle" fill="#0f2233">per-request context</text>
+<text x="621.5" y="78.5" font-size="12.5" font-weight="400" text-anchor="middle" fill="#475569">executionContext (driver),</text>
+<text x="621.5" y="95.0" font-size="12.5" font-weight="400" text-anchor="middle" fill="#475569">database, token,</text>
+<text x="621.5" y="111.5" font-size="12.5" font-weight="400" text-anchor="middle" fill="#475569">query options</text>
+<circle cx="528" cy="36" r="11" fill="#0a6190"/>
+<text x="528" y="40.5" font-size="13" font-weight="700" text-anchor="middle" fill="#ffffff">1</text>
+<rect x="757" y="36" width="215" height="118" rx="8" fill="#fff4d6" stroke="#9a6700" stroke-width="1.5"/>
+<text x="864.5" y="58" font-size="14.5" font-weight="650" text-anchor="middle" fill="#0f2233">counts plugin</text>
+<text x="864.5" y="78.5" font-size="12.5" font-weight="400" text-anchor="middle" fill="#475569">mutations only:</text>
+<text x="864.5" y="95.0" font-size="12.5" font-weight="400" text-anchor="middle" fill="#475569">recalculate counts after,</text>
+<text x="864.5" y="111.5" font-size="12.5" font-weight="400" text-anchor="middle" fill="#475569">reply only when done</text>
+<circle cx="771" cy="36" r="11" fill="#0a6190"/>
+<text x="771" y="40.5" font-size="13" font-weight="700" text-anchor="middle" fill="#ffffff">2</text>
+<path d="M 243 95 L 271 95" fill="none" stroke="#64748b" stroke-width="1.8" marker-end="url(#arr)"/>
+<path d="M 486 95 L 514 95" fill="none" stroke="#64748b" stroke-width="1.8" marker-end="url(#arr)"/>
+<path d="M 729 95 L 757 95" fill="none" stroke="#64748b" stroke-width="1.8" marker-end="url(#arr)"/>
+<rect x="757" y="226" width="215" height="118" rx="8" fill="#e1f5ee" stroke="#0b8a6a" stroke-width="2.6"/>
+<text x="864.5" y="248" font-size="14.5" font-weight="650" text-anchor="middle" fill="#0f2233">@neo4j/graphql</text>
+<text x="864.5" y="268.5" font-size="12.5" font-weight="400" text-anchor="middle" fill="#475569">translate to Cypher;</text>
+<text x="864.5" y="285.0" font-size="12.5" font-weight="400" text-anchor="middle" fill="#475569">apply @authentication and</text>
+<text x="864.5" y="301.5" font-size="12.5" font-weight="400" text-anchor="middle" fill="#475569">@authorization if auth is on</text>
+<circle cx="771" cy="226" r="11" fill="#0a6190"/>
+<text x="771" y="230.5" font-size="13" font-weight="700" text-anchor="middle" fill="#ffffff">3</text>
+<rect x="514" y="226" width="215" height="118" rx="8" fill="#ffffff" stroke="#64748b" stroke-width="1.5"/>
+<text x="621.5" y="248" font-size="14.5" font-weight="650" text-anchor="middle" fill="#0f2233">driver</text>
+<text x="621.5" y="268.5" font-size="12.5" font-weight="400" text-anchor="middle" fill="#475569">one session per request,</text>
+<text x="621.5" y="285.0" font-size="12.5" font-weight="400" text-anchor="middle" fill="#475569">on NEO4J_DATABASE</text>
+<circle cx="528" cy="226" r="11" fill="#0a6190"/>
+<text x="528" y="230.5" font-size="13" font-weight="700" text-anchor="middle" fill="#ffffff">4</text>
+<rect x="271" y="226" width="215" height="118" rx="8" fill="#e3f1fa" stroke="#0a6190" stroke-width="1.5"/>
+<text x="378.5" y="248" font-size="14.5" font-weight="650" text-anchor="middle" fill="#0f2233">neo4j</text>
+<text x="378.5" y="268.5" font-size="12.5" font-weight="400" text-anchor="middle" fill="#475569">runs the Cypher,</text>
+<text x="378.5" y="285.0" font-size="12.5" font-weight="400" text-anchor="middle" fill="#475569">returns rows</text>
+<path d="M 864.5 154 L 864.5 226" fill="none" stroke="#64748b" stroke-width="1.8" marker-end="url(#arr)"/>
+<path d="M 757 285 L 729 285" fill="none" stroke="#64748b" stroke-width="1.8" marker-end="url(#arr)"/>
+<path d="M 514 285 L 486 285" fill="none" stroke="#64748b" stroke-width="1.8" marker-end="url(#arr)"/>
+<text x="28" y="270" font-size="12.5" font-weight="600" text-anchor="start" fill="#0f2233">rows come back the same way:</text>
+<text x="28" y="290" font-size="12.5" font-weight="400" text-anchor="start" fill="#475569">Neo4j -&gt; driver -&gt; library -&gt;</text>
+<text x="28" y="308" font-size="12.5" font-weight="400" text-anchor="start" fill="#475569">GraphQL JSON response</text>
+<text x="36" y="378" font-size="12.5" font-weight="400" text-anchor="start" fill="#475569" font-style="italic">No resolvers are written: behaviour comes from the schema file and its directives.</text>
+</svg>

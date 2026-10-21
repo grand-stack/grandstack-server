@@ -17,6 +17,6 @@ GraphQL API over Neo4j using `@neo4j/graphql` v7 and GraphQL Yoga. Configured by
 - Auth is off unless the three `AUTH_*` variables are set (they must be set together). Rules (`@authentication`/`@authorization`) belong in an extra schema file loaded with `SCHEMA_EXTRA_PATHS`; v7 pitfalls (APOC for `validate` and `DateTime`, no `@unique`, `type Mutation` not `extend`) are in [docs/schema-guide.md](docs/schema-guide.md#authentication-and-authorization-rules-in-v7). Do not expose an open server publicly.
 
 ## Keep the docs true
-When you change behaviour, update the matching doc in the same change: environment variables in `docs/configuration.md` and the table in `src/config.ts` tests, schema changes via `npm run docs:schema`, and new gotchas in `docs/troubleshooting.md`. `npm run docs:check` fails on a stale schema reference or a broken relative link.
+When you change behaviour, update the matching doc in the same change: environment variables in `docs/configuration.md` and the table in `src/config.ts` tests, schema changes via `npm run docs:schema`, and new gotchas in `docs/troubleshooting.md`. `npm run docs:check` fails on a stale schema reference or a broken relative link. Diagrams are SVG files in `docs/diagrams/`: edit the SVG and its numbered legend together when behaviour changes; `npm run docs:check` fails on a missing alt text, unsafe SVG content, or legend numbers that do not match the callouts drawn.
 
 Versioning: semver git tags with a matching image tag.

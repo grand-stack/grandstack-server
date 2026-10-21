@@ -71,6 +71,17 @@ Deleting a node also deletes its relationships (it detaches), but the nodes at t
 
 `Person.actedCount` and `directedCount` are stored properties ([seeding](seeding.md#derived-counts)). `src/refreshCountsPlugin.ts` is a Yoga plugin that wraps execution: after any operation whose type is `mutation`, it runs the recalculation in `src/counts.ts` and only then returns the response. A client that refetches straight after a mutation therefore sees correct counts. Details:
 
+[![Editing a movie: the web app sends a relationship diff, the library applies it in one transaction, the counts plugin recalculates every person's counts, and only then the response is returned, so the refetch shows correct counts.](diagrams/edit-and-counts.svg)](diagrams/edit-and-counts.svg)
+
+*Figure: an edit from the web app, step by step. Click the image for full size; the numbered notes below carry the same information as text.*
+
+1. **One update with only the changes.** A diff: `disconnect` what was removed, `connect` or `create` what was added, one edge update per changed role.
+2. **The library applies it.** `@neo4j/graphql` runs the update as one Cypher transaction and hands the result back to the plugin that wrapped it.
+3. **Then the counts refresh.** The plugin recalculates `actedCount` and `directedCount` for all people before the response goes out.
+4. **The response is built before the refresh.** Counts selected inside a mutation result can be `null` or one step behind; read them with a query afterwards.
+5. **Why a diff.** In one mutation v7 runs a disconnect after the connect, so "disconnect all, then connect the new set" removes the new links.
+6. **Always and everywhere.** It runs after every mutation, even one that returned errors, and a failed refresh is logged, not returned.
+
 - It also runs when the mutation returned errors, because a partly applied mutation may still have changed credits.
 - If the refresh itself fails, the error is logged and the mutation result is returned unchanged.
 - It recalculates for **all** people on each mutation. That is fine at this size (a few hundred people); for a large graph, change `REFRESH_COUNTS_CYPHER` in `src/counts.ts` to touch only affected nodes, or set `REFRESH_COUNTS=false` if you have no derived values.

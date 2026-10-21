@@ -2,7 +2,7 @@
 
 grandstack-server is a small Node service that exposes a GraphQL API over a Neo4j database. You describe your data in a GraphQL schema file; [`@neo4j/graphql`](https://neo4j.com/docs/graphql/) turns it into a full API (queries, filters, sorting, create/update/delete) and translates every request into Cypher. [GraphQL Yoga](https://the-guild.dev/graphql/yoga-server) serves it over HTTP.
 
-Applies to grandstack-server v0.7.0 (`@neo4j/graphql` 7.6.4, `graphql` 16.14, Node 22 or later).
+Applies to grandstack-server v0.7.1 (`@neo4j/graphql` 7.6.4, `graphql` 16.14, Node 22 or later).
 
 ## What is in the repo
 
@@ -34,14 +34,27 @@ Applies to grandstack-server v0.7.0 (`@neo4j/graphql` 7.6.4, `graphql` 16.14, No
 
 ## What happens to a request
 
-```
-client --HTTP POST /graphql--> Yoga
-   Yoga builds the per-request context (below)
-   plugins wrap execution (counts refresh runs after mutations)
-   @neo4j/graphql translates the operation to Cypher and runs it through the driver
-   Neo4j returns rows; @neo4j/graphql shapes them into the GraphQL response
-client <--JSON--
-```
+[![grandstack-server start-up in eight steps: read config, connect, setup Cypher, seed, build the schema, create Yoga, listen, shut down; a failure at any step exits with the error.](diagrams/server-startup.svg)](diagrams/server-startup.svg)
+
+*Figure: the eight start-up steps in order. Click the image for full size; the numbered notes below carry the same information as text.*
+
+1. **Read config.** Environment variables; `NEO4J_URI` and `NEO4J_PASSWORD` are required, and a bad value exits with a message that names it.
+2. **Connect.** Create the driver and call `verifyConnectivity`; an unreachable Neo4j or a wrong password exits here.
+3. **Setup Cypher.** Run the files in `SETUP_CYPHER_PATHS` on every start (idempotent constraints and indexes).
+4. **Seed.** Unless `SEED=false`, decide whether to load the seed file (see the seed decision in [seeding](seeding.md)).
+5. **Build the schema.** The base schema file plus `SCHEMA_EXTRA_PATHS`; with the `AUTH_*` variables set, tokens are verified against the JWKS. Schema mistakes (for example a missing `@node`) surface here.
+6. **Create Yoga.** CORS, the counts plugin (unless `REFRESH_COUNTS=false`) and the per-request context.
+7. **Listen.** On `PORT` (default 4000); GraphiQL is at `/graphql`.
+8. **Shut down.** On `SIGINT` or `SIGTERM` close the HTTP server and the driver.
+
+[![The path every request takes in grandstack-server: Yoga CORS check, per-request context, the counts plugin for mutations, the Neo4j GraphQL library translating to Cypher, the driver, and Neo4j.](diagrams/request-path.svg)](diagrams/request-path.svg)
+
+*Figure: the path every request takes. Click the image for full size; the numbered notes below carry the same information as text.*
+
+1. **Per-request context.** `executionContext` (the driver), `sessionConfig.database`, `token` (the `Authorization` header) and `cypherQueryOptions`.
+2. **Counts plugin.** Wraps execution for mutations only: after the operation runs it recalculates the stored counts, then returns.
+3. **The library does the work.** `@neo4j/graphql` translates the operation to Cypher and applies `@authentication` and `@authorization` rules when auth is on.
+4. **Driver and database.** One session per request on `NEO4J_DATABASE`; rows come back the same way as a GraphQL JSON response.
 
 Nothing in this repo writes resolvers. Behaviour comes from the schema file and the directives in it.
 

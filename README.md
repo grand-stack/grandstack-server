@@ -39,4 +39,4 @@ Working with a coding agent? Start with [AGENTS.md](AGENTS.md).
 
 The bundled data is sample data: titles, casts and relationships are real, but ratings and runtimes are approximate.
 
-Last verified: v0.7.0 with `@neo4j/graphql` 7.6.4, Neo4j 2026.10 community, Node 24 (image) and Node 26 (development).
+Last verified: v0.7.1 with `@neo4j/graphql` 7.6.4, Neo4j 2026.10 community, Node 24 (image) and Node 26 (development).
