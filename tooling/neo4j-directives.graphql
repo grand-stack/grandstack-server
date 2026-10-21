@@ -4,3 +4,4 @@ enum RelationshipDirection { IN OUT }
 directive @relationship(type: String!, direction: RelationshipDirection!, properties: String) on FIELD_DEFINITION
 directive @relationshipProperties on OBJECT
 directive @node(labels: [String!], primaryKey: String) on OBJECT
+directive @cypher(statement: String!, columnName: String!) on FIELD_DEFINITION

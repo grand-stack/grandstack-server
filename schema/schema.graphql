@@ -16,6 +16,23 @@ type Movie @node {
   actors: [Person!]! @relationship(type: "ACTED_IN", direction: IN, properties: "ActedIn")
   """People who directed the film."""
   directors: [Person!]! @relationship(type: "DIRECTED", direction: IN)
+  """
+  Films most like this one, best match first. Scored by shared director (3 points), shared cast member (2) and shared genre (1).
+  """
+  similar(
+    """Maximum number of films to return."""
+    limit: Int = 8
+  ): [Movie!]!
+    @cypher(
+      statement: """
+      MATCH (this)-[r1:IN_GENRE|ACTED_IN|DIRECTED]-(shared)-[r2:IN_GENRE|ACTED_IN|DIRECTED]-(other:Movie)
+      WHERE other <> this AND type(r1) = type(r2)
+      WITH other, sum(CASE type(r1) WHEN 'DIRECTED' THEN 3 WHEN 'ACTED_IN' THEN 2 ELSE 1 END) AS score
+      ORDER BY score DESC, other.rating DESC, other.title
+      RETURN other LIMIT $limit
+      """
+      columnName: "other"
+    )
 }
 
 """A person who acted in or directed films."""
