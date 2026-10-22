@@ -22,3 +22,4 @@ When you change behaviour, update the matching doc in the same change: environme
 
 Versioning: semver git tags with a matching image tag.
 - Releases use the **release-cut** workflow (Actions tab), which sets the version in every `package.json`, tags and publishes. Do not bump versions or push tags by hand; see `grandstack/docs/releasing.md`.
+- `package.json` `overrides` pin `@graphql-tools/utils` to 12.1.0 and `uuid` to 11.1.1 to clear Dependabot security alerts (the versions `@neo4j/graphql` and `@apollo/subgraph` ask for are vulnerable). Remove an override only when the dependency itself ships a patched version, and rerun the tests and the federation smoke test when you change them.
