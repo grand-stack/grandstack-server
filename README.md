@@ -45,4 +45,4 @@ Last verified: v0.7.1 with `@neo4j/graphql` 7.6.4, Neo4j 2026.10 community, Node
 
 ## Licence
 
-Apache License 2.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE). The same licence applies to every GRANDstack repository and to [grandstack.ai](https://grandstack.ai).
+Apache License 2.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE). The same licence applies to every GRANDstack repository and to [grandstack.ai](https://www.grandstack.ai).
