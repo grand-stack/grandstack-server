@@ -1,3 +1,5 @@
+// Copyright (c) "Neo4j"
+// Neo4j Sweden AB [http://neo4j.com]
 import { readFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import { Neo4jGraphQL } from "@neo4j/graphql";

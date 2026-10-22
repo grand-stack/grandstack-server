@@ -1,3 +1,5 @@
+// Copyright (c) "Neo4j"
+// Neo4j Sweden AB [http://neo4j.com]
 export interface Config {
   neo4jUri: string;
   neo4jUsername: string;

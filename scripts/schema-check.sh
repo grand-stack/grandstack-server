@@ -1,4 +1,6 @@
 #!/bin/sh
+# Copyright (c) "Neo4j"
+# Neo4j Sweden AB [http://neo4j.com]
 # Breaking-change check: compares schema/schema.graphql against a git ref (default HEAD).
 # Neo4j directive stubs are prepended so Inspector can load both versions.
 set -e

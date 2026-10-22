@@ -1,3 +1,5 @@
+// Copyright (c) "Neo4j"
+// Neo4j Sweden AB [http://neo4j.com]
 import { parse } from "graphql";
 import { describe, expect, it, vi } from "vitest";
 import { useRefreshCounts } from "../src/refreshCountsPlugin.js";

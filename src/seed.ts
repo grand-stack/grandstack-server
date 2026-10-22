@@ -1,3 +1,5 @@
+// Copyright (c) "Neo4j"
+// Neo4j Sweden AB [http://neo4j.com]
 import { readFile } from "node:fs/promises";
 import type { Driver } from "neo4j-driver";
 

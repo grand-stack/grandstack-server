@@ -1,3 +1,5 @@
+// Copyright (c) "Neo4j"
+// Neo4j Sweden AB [http://neo4j.com]
 import { getOperationAST } from "graphql";
 import type { Plugin } from "graphql-yoga";
 

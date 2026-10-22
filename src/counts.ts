@@ -1,3 +1,5 @@
+// Copyright (c) "Neo4j"
+// Neo4j Sweden AB [http://neo4j.com]
 import type { Driver } from "neo4j-driver";
 
 /** Recomputes the stored credit counts for every person. Keep in step with the last statement of seed/movies.cypher. */

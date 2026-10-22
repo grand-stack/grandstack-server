@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+// Copyright (c) "Neo4j"
+// Neo4j Sweden AB [http://neo4j.com]
 // Generates docs/schema-reference.md from schema/schema.graphql.
 // Usage: node scripts/generate-schema-docs.mjs [--check]
 // With --check it exits 1 if the committed file differs from what would be generated (used in CI).
