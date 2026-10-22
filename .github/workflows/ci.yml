@@ -17,6 +17,7 @@ jobs:
       scripts: "lint test docs:check build"
   docker-and-schema:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
@@ -25,12 +26,19 @@ jobs:
       - run: npm ci
       - name: Breaking-change check
         if: github.event_name == 'pull_request'
-        run: sh scripts/schema-check.sh "origin/${{ github.base_ref }}"
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: sh scripts/schema-check.sh "origin/$BASE_REF"
       - run: docker build -t grandstack-server:ci .
       - name: Smoke test
         run: |
           docker network create gs
           docker run -d --name neo4j --network gs -e NEO4J_AUTH=neo4j/ci-password neo4j:2026.10-community
-          until docker exec neo4j cypher-shell -u neo4j -p ci-password 'RETURN 1' >/dev/null 2>&1; do sleep 3; done
+          timeout 180 sh -c "until docker exec neo4j cypher-shell -u neo4j -p ci-password 'RETURN 1' >/dev/null 2>&1; do sleep 3; done"
           docker run -d --name server --network gs -p 4000:4000 -e NEO4J_URI=bolt://neo4j:7687 -e NEO4J_PASSWORD=ci-password grandstack-server:ci
-          until curl -sf localhost:4000/graphql -H 'content-type: application/json' -d '{"query":"{ movies(limit:1){ title } }"}' | grep -q title; do sleep 2; done
+          timeout 120 sh -c "until curl -sf localhost:4000/graphql -H 'content-type: application/json' -d '{\"query\":\"{ movies(limit:1){ title } }\"}' | grep -q title; do sleep 2; done"
+      - name: Container logs
+        if: failure()
+        run: |
+          docker logs neo4j 2>&1 | tail -40 || true
+          docker logs server 2>&1 | tail -40 || true
