@@ -9,6 +9,8 @@ export interface Config {
   seed: boolean;
   seedProbeLabel: string;
   refreshCounts: boolean;
+  /** Serve the schema as an Apollo Federation subgraph (`getSubgraphSchema`). The schema must contain a federation `@link` extension. */
+  federation: boolean;
   port: number;
   corsOrigin: string;
   /** All three set: verify JWTs with this JWKS and enable `@authentication`/`@authorization`. */
@@ -54,6 +56,7 @@ export function loadConfig(env: Env = process.env): Config {
     seed: (env.SEED ?? "true").toLowerCase() !== "false",
     seedProbeLabel: env.SEED_PROBE_LABEL ?? "Movie",
     refreshCounts: (env.REFRESH_COUNTS ?? "true").toLowerCase() !== "false",
+    federation: (env.FEDERATION ?? "false").toLowerCase() === "true",
     port,
     corsOrigin: env.CORS_ORIGIN ?? "http://localhost:3000",
     auth: authSet.length === authVars.length

@@ -71,3 +71,14 @@ describe("seed versioning", () => {
     expect(decideSeed(152, 1, 2)).toBe("load");
   });
 });
+
+describe("federation setting", () => {
+  const base = { NEO4J_URI: "a", NEO4J_PASSWORD: "b" };
+  it("is off by default", () => {
+    expect(loadConfig(base).federation).toBe(false);
+  });
+  it("turns on with FEDERATION=true in any letter case", () => {
+    expect(loadConfig({ ...base, FEDERATION: "TRUE" }).federation).toBe(true);
+    expect(loadConfig({ ...base, FEDERATION: "false" }).federation).toBe(false);
+  });
+});

@@ -36,7 +36,9 @@ const neo4jGraphQL = new Neo4jGraphQL({
     ? { authorization: { key: { url: config.auth.jwksUrl }, verifyOptions: { issuer: config.auth.issuer, audience: config.auth.audience } } }
     : undefined,
 });
-const schema = await neo4jGraphQL.getSchema();
+// FEDERATION=true serves a federation subgraph; the typeDefs then need `extend schema @link(...federation/v2.0...)`
+const schema = config.federation ? await neo4jGraphQL.getSubgraphSchema() : await neo4jGraphQL.getSchema();
+if (config.federation) console.log("Serving as a federation subgraph");
 if (config.auth) console.log(`JWT verification on (issuer ${config.auth.issuer})`);
 
 // Create a Yoga instance with the neo4j schema and per-request Neo4j options

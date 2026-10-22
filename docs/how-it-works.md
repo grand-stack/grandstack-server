@@ -27,7 +27,7 @@ Applies to grandstack-server v0.7.1 (`@neo4j/graphql` 7.6.4, `graphql` 16.14, No
 2. **Create the Neo4j driver** and call `verifyConnectivity`. This fails immediately if Neo4j is unreachable or the credentials are wrong.
 3. **Run setup Cypher** from `SETUP_CYPHER_PATHS`, if set (idempotent constraints and indexes, run at every start).
 4. **Seed** (unless `SEED=false`): decide whether to load `seed/movies.cypher` ([rules](seeding.md)).
-5. **Read the schema**: the file at `SCHEMA_PATH` plus any `SCHEMA_EXTRA_PATHS`, joined, and build the executable schema with `new Neo4jGraphQL({ typeDefs, driver, features }).getSchema()`. If the `AUTH_*` variables are set, `features.authorization` is a remote JWKS with issuer and audience checks. Schema errors, for example a missing `@node`, surface here.
+5. **Read the schema**: the file at `SCHEMA_PATH` plus any `SCHEMA_EXTRA_PATHS`, joined, and build the executable schema with `new Neo4jGraphQL({ typeDefs, driver, features }).getSchema()`. If the `AUTH_*` variables are set, `features.authorization` is a remote JWKS with issuer and audience checks. With `FEDERATION=true` it calls `getSubgraphSchema()` instead, which needs a federation `@link` in the schema. Schema errors, for example a missing `@node`, surface here.
 6. **Create the Yoga server** with CORS, the counts plugin (if `REFRESH_COUNTS` is not `false`) and the per-request context below.
 7. **Listen** on `PORT`. The GraphQL endpoint is `/graphql`; opening it in a browser shows GraphiQL.
 8. On `SIGINT` or `SIGTERM` it closes the HTTP server and the driver.

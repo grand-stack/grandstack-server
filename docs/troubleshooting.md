@@ -38,6 +38,13 @@ Errors we actually hit while building this, with causes and fixes.
 | `Invalid argument: validate, error: Expected type to be an object` | The rule's `where` uses the old filter style. Use operators: `sub: { eq: "$jwt.sub" }`. |
 | `Non-list relationship property "x" cannot have non-nullable type` | Single-node relationship fields must be nullable (`author: User`, not `User!`). |
 
+## Federation
+
+| Symptom | Cause and fix |
+| --- | --- |
+| `typeDefs must contain \`@link\` schema extension to be used with Apollo Federation` | `FEDERATION=true` but no `extend schema @link(url: "https://specs.apollo.dev/federation/v2.0", import: ["@key"])` in the schema. Add it through `SCHEMA_EXTRA_PATHS` |
+| `doc.definitions is not iterable` at startup with `FEDERATION=true` | `@apollo/subgraph` 2.15.1 is incompatible with `@neo4j/graphql` 7.6.4. This repo pins 2.14.4 with `overrides` in `package.json`; keep that when you update dependencies |
+
 ## From a browser
 
 | Symptom | Cause and fix |
