@@ -1,9 +1,21 @@
 # Copyright (c) "Neo4j"
 # Neo4j Sweden AB [http://neo4j.com]
 name: ci
-on: [push, pull_request]
+on:
+  pull_request:
+  push:
+    branches: [main]
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
 jobs:
-  check:
+  node:
+    uses: grand-stack/.github/.github/workflows/ci-node.yml@v1
+    with:
+      scripts: "lint test docs:check build"
+  docker-and-schema:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -11,10 +23,6 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 24, cache: npm }
       - run: npm ci
-      - run: npm run lint
-      - run: npm test
-      - name: Docs are up to date
-        run: npm run docs:check
       - name: Breaking-change check
         if: github.event_name == 'pull_request'
         run: sh scripts/schema-check.sh "origin/${{ github.base_ref }}"

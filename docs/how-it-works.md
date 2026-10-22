@@ -25,8 +25,8 @@ Applies to grandstack-server v0.7.1 (`@neo4j/graphql` 7.6.4, `graphql` 16.14, No
 
 1. **Read configuration** from environment variables. `NEO4J_URI` and `NEO4J_PASSWORD` are required.
 2. **Create the Neo4j driver** and call `verifyConnectivity`. This fails immediately if Neo4j is unreachable or the credentials are wrong.
-3. **Run setup Cypher** from `SETUP_CYPHER_PATHS`, if set (idempotent constraints and indexes, run at every start).
-4. **Seed** (unless `SEED=false`): decide whether to load `seed/movies.cypher` ([rules](seeding.md)).
+3. **Seed** (unless `SEED=false`): decide whether to load `seed/movies.cypher` ([rules](seeding.md)).
+4. **Run setup Cypher** from `SETUP_CYPHER_PATHS`, if set (idempotent constraints, indexes and data fix-ups, run at every start, after the seed so it also applies to freshly loaded data).
 5. **Read the schema**: the file at `SCHEMA_PATH` plus any `SCHEMA_EXTRA_PATHS`, joined, and build the executable schema with `new Neo4jGraphQL({ typeDefs, driver, features }).getSchema()`. If the `AUTH_*` variables are set, `features.authorization` is a remote JWKS with issuer and audience checks. With `FEDERATION=true` it calls `getSubgraphSchema()` instead, which needs a federation `@link` in the schema. Schema errors, for example a missing `@node`, surface here.
 6. **Create the Yoga server** with CORS, the counts plugin (if `REFRESH_COUNTS` is not `false`) and the per-request context below.
 7. **Listen** on `PORT`. The GraphQL endpoint is `/graphql`; opening it in a browser shows GraphiQL.
@@ -34,14 +34,14 @@ Applies to grandstack-server v0.7.1 (`@neo4j/graphql` 7.6.4, `graphql` 16.14, No
 
 ## What happens to a request
 
-[![grandstack-server start-up in eight steps: read config, connect, setup Cypher, seed, build the schema, create Yoga, listen, shut down; a failure at any step exits with the error.](diagrams/server-startup.svg)](diagrams/server-startup.svg)
+[![grandstack-server start-up in eight steps: read config, connect, seed, setup Cypher, build the schema, create Yoga, listen, shut down; a failure at any step exits with the error.](diagrams/server-startup.svg)](diagrams/server-startup.svg)
 
 *Figure: the eight start-up steps in order. Click the image for full size; the numbered notes below carry the same information as text.*
 
 1. **Read config.** Environment variables; `NEO4J_URI` and `NEO4J_PASSWORD` are required, and a bad value exits with a message that names it.
 2. **Connect.** Create the driver and call `verifyConnectivity`; an unreachable Neo4j or a wrong password exits here.
-3. **Setup Cypher.** Run the files in `SETUP_CYPHER_PATHS` on every start (idempotent constraints and indexes).
-4. **Seed.** Unless `SEED=false`, decide whether to load the seed file (see the seed decision in [seeding](seeding.md)).
+3. **Seed.** Unless `SEED=false`, decide whether to load the seed file (see the seed decision in [seeding](seeding.md)).
+4. **Setup Cypher.** Run the files in `SETUP_CYPHER_PATHS` on every start, after the seed (idempotent constraints, indexes and data fix-ups).
 5. **Build the schema.** The base schema file plus `SCHEMA_EXTRA_PATHS`; with the `AUTH_*` variables set, tokens are verified against the JWKS. Schema mistakes (for example a missing `@node`) surface here.
 6. **Create Yoga.** CORS, the counts plugin (unless `REFRESH_COUNTS=false`) and the per-request context.
 7. **Listen.** On `PORT` (default 4000); GraphiQL is at `/graphql`.

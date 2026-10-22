@@ -14,11 +14,6 @@ const config = loadConfig();
 const driver = neo4j.driver(config.neo4jUri, neo4j.auth.basic(config.neo4jUsername, config.neo4jPassword));
 await driver.verifyConnectivity({ database: config.neo4jDatabase });
 
-if (config.setupCypherPaths.length > 0) {
-  const n = await runSetupCypher(driver, config.neo4jDatabase, config.setupCypherPaths);
-  console.log(`Ran ${n} setup statement(s)`);
-}
-
 if (config.seed) {
   const decision = await seedIfNeeded(driver, config.neo4jDatabase, config.seedPath, config.seedProbeLabel);
   const messages = {
@@ -27,6 +22,12 @@ if (config.seed) {
     "skip-foreign": `Database already has ${config.seedProbeLabel} data not loaded by this seed, skipping`,
   };
   console.log(messages[decision]);
+}
+
+// After the seed, so statements that act on seeded data (such as the federation links) also work on a fresh database
+if (config.setupCypherPaths.length > 0) {
+  const n = await runSetupCypher(driver, config.neo4jDatabase, config.setupCypherPaths);
+  console.log(`Ran ${n} setup statement(s)`);
 }
 
 const typeDefs = (await Promise.all([config.schemaPath, ...config.schemaExtraPaths].map((p) => readFile(p, "utf8")))).join("\n");

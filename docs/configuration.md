@@ -20,7 +20,7 @@ The server is configured only through environment variables (read once at startu
 | `AUTH_ISSUER` | none | no | Expected token issuer (`iss`), exactly as it appears in tokens. |
 | `AUTH_AUDIENCE` | none | no | Expected token audience (`aud`). |
 | `SCHEMA_EXTRA_PATHS` | none | no | Comma-separated extra `.graphql` files appended to the base schema (new types, `extend type`). |
-| `SETUP_CYPHER_PATHS` | none | no | Comma-separated Cypher files run at **every** start, for idempotent setup such as `CREATE CONSTRAINT ... IF NOT EXISTS`. |
+| `SETUP_CYPHER_PATHS` | none | no | Comma-separated Cypher files run at **every** start, **after** the seed, for idempotent setup such as `CREATE CONSTRAINT ... IF NOT EXISTS` or filling in properties on the seeded data. |
 | `FEDERATION` | `false` | no | `true` serves the schema as an [Apollo Federation](https://neo4j.com/docs/graphql/current/integrations/apollo-federation/) subgraph (`getSubgraphSchema()`), adding `_service` and `_entities`. The schema must contain `extend schema @link(url: "https://specs.apollo.dev/federation/v2.0", import: ["@key"])` (add it through `SCHEMA_EXTRA_PATHS`); without it startup fails with `typeDefs must contain \`@link\` schema extension to be used with Apollo Federation`. See `grandstack-federation`. |
 | `PORT` | `4000` | no | HTTP port. |
 | `CORS_ORIGIN` | `http://localhost:3000` | no | Allowed browser origin(s): one origin, a comma-separated list, or `*`. With `*`, credentials are not allowed. |
