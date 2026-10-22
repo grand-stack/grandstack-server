@@ -6,13 +6,15 @@ A Docker image that serves GraphQL over Neo4j. You give it a Neo4j connection (e
 
 ## Run it
 
-The easiest way is the `grandstack` umbrella repo, which starts Neo4j, this server and the web app together (`docker compose up --build`). To run this server on its own against a Neo4j you already have:
+The easiest way is the `grandstack` umbrella repo, which starts Neo4j, this server and the web app together (`docker compose up --build`). To run this server on its own against a Neo4j you already have, clone this repository, go into the folder, then build and run the image:
 
 ```sh
-docker build -t grandstack-server:0.6.0 .
+git clone https://github.com/grand-stack/grandstack-server
+cd grandstack-server
+docker build -t grandstack-server:local .
 docker run --rm -p 4000:4000 \
   -e NEO4J_URI=bolt://host.docker.internal:7687 -e NEO4J_PASSWORD=secret \
-  grandstack-server:0.6.0
+  grandstack-server:local
 # GraphQL and GraphiQL: http://localhost:4000/graphql
 ```
 

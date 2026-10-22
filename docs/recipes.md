@@ -2,6 +2,8 @@
 
 Step-by-step changes for the server. Each ends with how to check it worked. Run commands from the repo root of `grandstack-server`. These are written so a developer or a coding agent can follow them literally.
 
+> **Where to run this.** Commands on this page that start with `npm`, `node` or `docker build` run inside a clone of this repository: `git clone https://github.com/grand-stack/grandstack-server`, then `cd grandstack-server` (Node 22 or later; run `npm ci` once). Commands that need the running stack use the `grandstack` repository's compose files: see the [quickstart](https://grandstack.ai/quickstart/).
+
 ## Add a field to an existing type
 
 Example: add `country: String` to `Movie`.

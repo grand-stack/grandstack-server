@@ -2,6 +2,8 @@
 
 The server is configured only through environment variables (read once at startup by `src/config.ts`) and two mounted files: the schema and the seed.
 
+> **Where to run this.** Commands on this page that start with `npm`, `node` or `docker build` run inside a clone of this repository: `git clone https://github.com/grand-stack/grandstack-server`, then `cd grandstack-server` (Node 22 or later; run `npm ci` once). Commands that need the running stack use the `grandstack` repository's compose files: see the [quickstart](https://grandstack.ai/quickstart/).
+
 ## Environment variables
 
 | Variable | Default | Required | Effect |
