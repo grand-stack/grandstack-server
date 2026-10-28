@@ -43,6 +43,16 @@ Use `@cypher` ([schema guide](schema-guide.md#computed-fields-with-cypher)). Rem
 
 Put them in a new file and load it with `SCHEMA_EXTRA_PATHS=/app/schema/extra.graphql` (mount the file into the image). Use `extend type Movie { ... }` to add fields to existing types. For constraints and indexes the new types need, write idempotent Cypher (`CREATE CONSTRAINT ... IF NOT EXISTS`) in a file listed in `SETUP_CYPHER_PATHS`. This is how `grandstack-auth` adds users, reviews and its access rules.
 
+## Add a model
+
+A model is a folder you mount, so the same image can serve a different schema (see [models](configuration.md#models)).
+
+1. Create `models/mine/schema.graphql` (every type `@node`, every type and field described), and `models/mine/setup.cypher` with idempotent constraints (`CREATE CONSTRAINT ... IF NOT EXISTS`). Add `seed.cypher` and a `model.json` with `"seedProbeLabel"` only if you have sample data.
+2. Run it: `-e MODEL=mine -v "$PWD/models:/app/models:ro"`. The log starts with `Model: mine`.
+3. Check: a query against one of your types works, and the Movies data is not there (`MATCH (m:Movie) RETURN count(m)` is 0 on a fresh database).
+
+For a second, read-only copy of the same API, run another server with the same files and `READ_ONLY=true`.
+
 ## Add a server plugin
 
 Plugins wrap execution. `src/refreshCountsPlugin.ts` is a complete example: it uses `onExecute` with `setExecuteFn` to run code after a mutation. Add yours to the `plugins` array in `src/index.ts`, and write unit tests with fakes like `test/refreshCountsPlugin.test.ts`.

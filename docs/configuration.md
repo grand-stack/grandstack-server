@@ -13,11 +13,14 @@ The server is configured only through environment variables (read once at startu
 | `NEO4J_USERNAME` | `neo4j` | no | Neo4j user. |
 | `NEO4J_DATABASE` | `neo4j` | no | Database used for every request and for seeding. Community Neo4j has only `neo4j`. |
 | `NEO4J_CYPHER_VERSION_PREFIX` | `false` | no | `true` prefixes generated queries with the Cypher version the library targets; `false` lets the database choose. |
-| `SCHEMA_PATH` | `schema/schema.graphql` | no | GraphQL schema file. In the image this is relative to `/app`. |
-| `SEED` | `true` | no | `false` disables seeding entirely. |
-| `SEED_PATH` | `seed/movies.cypher` | no | Seed Cypher file ([format and rules](seeding.md)). |
-| `SEED_PROBE_LABEL` | `Movie` | no | Node label used to detect existing data. Set it to your main entity's label. Letters, digits and underscore only. |
-| `REFRESH_COUNTS` | `true` | no | `false` turns off the plugin that recalculates `Person` counts after mutations. |
+| `MODEL` | `movies` | no | Which model runs: `movies` (built in) or the name of a folder under `MODELS_DIR`. **Only one model runs.** Sets the defaults for the schema, setup Cypher, seed, probe label and counts plugin; any variable below still wins. See [models](#models). |
+| `MODELS_DIR` | `models` | no | Where model folders are looked up. In the image this is relative to `/app`. |
+| `READ_ONLY` | `false` | no | `true` generates no create, update or delete mutations for any `@node` type. See [read-only](#read-only). |
+| `SCHEMA_PATH` | the model's schema (`schema/schema.graphql` for Movies) | no | GraphQL schema file. In the image this is relative to `/app`. |
+| `SEED` | `true` if the model has a seed | no | `false` disables seeding entirely. `true` for a model with no seed is an error. |
+| `SEED_PATH` | the model's seed (`seed/movies.cypher` for Movies) | no | Seed Cypher file ([format and rules](seeding.md)). |
+| `SEED_PROBE_LABEL` | the model's (`Movie` for Movies) | no | Node label used to detect existing data. Set it to your main entity's label. Letters, digits and underscore only. |
+| `REFRESH_COUNTS` | `true` for Movies, `false` for any other model | no | The plugin that recalculates `Person` counts after mutations. It belongs to Movies. |
 | `AUTH_JWKS_URL` | none | no | URL of the identity provider's JWKS (public signing keys). Must be reachable **from the server**. With the next two, turns on JWT verification and `@authentication`/`@authorization`. |
 | `AUTH_ISSUER` | none | no | Expected token issuer (`iss`), exactly as it appears in tokens. |
 | `AUTH_AUDIENCE` | none | no | Expected token audience (`aud`). |
@@ -27,7 +30,7 @@ The server is configured only through environment variables (read once at startu
 | `PORT` | `4000` | no | HTTP port. |
 | `CORS_ORIGIN` | `http://localhost:3000` | no | Allowed browser origin(s): one origin, a comma-separated list, or `*`. With `*`, credentials are not allowed. |
 
-The three `AUTH_*` variables must be set together; setting only some stops startup and names the missing ones. Without them the server does no authentication (the default). A missing required variable, a bad `PORT`, a bad `SEED_PROBE_LABEL` or a non-http(s) `AUTH_JWKS_URL` also stops startup with a message that names the problem. Booleans accept `true` or `false` in any letter case.
+The three `AUTH_*` variables must be set together; setting only some stops startup and names the missing ones. Without them the server does no authentication (the default). A missing required variable, an unknown `MODEL`, a bad `PORT`, a bad `SEED_PROBE_LABEL` or a non-http(s) `AUTH_JWKS_URL` also stops startup with a message that names the problem. Booleans accept `true` or `false` in any letter case.
 
 ## Files
 
@@ -35,6 +38,38 @@ The three `AUTH_*` variables must be set together; setting only some stops start
 | --- | --- |
 | `schema/schema.graphql` | The API. Read at startup. |
 | `seed/movies.cypher` | Sample data, loaded by the rules in [seeding](seeding.md). |
+
+## Models
+
+A **model** is a schema with the setup and sample data that go with it. The image has one built in, `movies`, which is what runs when `MODEL` is not set. Any other model is a folder you mount:
+
+```
+models/<name>/
+  schema.graphql   required
+  setup.cypher     optional: idempotent Cypher run at every start (constraints, indexes)
+  seed.cypher      optional: sample data, loaded by the usual [seed rules](seeding.md)
+  model.json       optional: { "seedProbeLabel": "Instance", "refreshCounts": false }
+```
+
+```sh
+docker run --rm -p 4000:4000 \
+  -e NEO4J_URI=bolt://host.docker.internal:7687 -e NEO4J_PASSWORD=secret \
+  -e MODEL=mine -v "$PWD/models:/app/models:ro" \
+  grandstack-server:local
+```
+
+- **Only one model runs**, because `MODEL` holds one name. Two models need two servers (and two databases, or you get both sets of data in one).
+- A model with a `seed.cypher` must name its `seedProbeLabel`, so the server can tell whether the data is already there. A model with no seed does not seed at all.
+- The Person counts plugin belongs to Movies, so it is **off** for every other model unless `model.json` turns it on.
+- **Order of precedence** for each setting: the environment variable, then `model.json`, then the default. `SETUP_CYPHER_PATHS` adds to the model's `setup.cypher`, which runs first.
+- The name is lower-case letters, digits and hyphens. A name that does not match a folder stops startup and lists the models it found.
+- Do not point two models at one Neo4j database unless you mean to: nothing separates their data.
+
+## Read-only
+
+`READ_ONLY=true` adds `@mutation(operations: [])` to every `@node` type, found in the schema itself, so the generated create, update and delete mutations never exist (the schema has no `Mutation` type at all, and a mutation fails with "Schema is not configured to execute mutation operation"). A type that already sets its own `@mutation` keeps it. Queries are unchanged.
+
+It is not a permission system: it is a different API. The usual use is to run **two servers on one database from one schema**: a public one with `READ_ONLY=true` and a private one without, which only trusted services can reach. Keep the private one off any published port and any network the public side shares.
 
 ## Using your own schema and seed
 
@@ -65,7 +100,7 @@ npm run docs:check     # fail if the reference is stale or a doc link is broken
 
 ## The image
 
-`Dockerfile` is multi-stage: build stage installs dependencies and compiles TypeScript; the final stage is `node:24-slim`, copies `node_modules`, `dist`, `schema` and `seed`, and runs as the non-root `node` user on port 4000. Tag images with the same version as the git tag ([releases](#releases)).
+`Dockerfile` is multi-stage: build stage installs dependencies and compiles TypeScript; the final stage is `node:24-slim`, copies `node_modules`, `dist`, `schema` and `seed` (models are mounted, not built in), and runs as the non-root `node` user on port 4000. Tag images with the same version as the git tag ([releases](#releases)).
 
 ## Releases
 

@@ -7,6 +7,7 @@ import neo4j from "neo4j-driver";
 import { createYoga } from "graphql-yoga";
 import { loadConfig } from "./config.js";
 import { refreshCounts } from "./counts.js";
+import { addReadOnly } from "./readOnly.js";
 import { useRefreshCounts } from "./refreshCountsPlugin.js";
 import { runSetupCypher, seedIfNeeded } from "./seed.js";
 
@@ -14,7 +15,8 @@ const config = loadConfig();
 const driver = neo4j.driver(config.neo4jUri, neo4j.auth.basic(config.neo4jUsername, config.neo4jPassword));
 await driver.verifyConnectivity({ database: config.neo4jDatabase });
 
-if (config.seed) {
+console.log(`Model: ${config.model}`);
+if (config.seed && config.seedPath) {
   const decision = await seedIfNeeded(driver, config.neo4jDatabase, config.seedPath, config.seedProbeLabel);
   const messages = {
     load: "Loaded seed",
@@ -30,7 +32,10 @@ if (config.setupCypherPaths.length > 0) {
   console.log(`Ran ${n} setup statement(s)`);
 }
 
-const typeDefs = (await Promise.all([config.schemaPath, ...config.schemaExtraPaths].map((p) => readFile(p, "utf8")))).join("\n");
+const baseTypeDefs = (await Promise.all([config.schemaPath, ...config.schemaExtraPaths].map((p) => readFile(p, "utf8")))).join("\n");
+// READ_ONLY=true: no create, update or delete mutations are generated, for any node type
+const typeDefs = config.readOnly ? addReadOnly(baseTypeDefs) : baseTypeDefs;
+if (config.readOnly) console.log("Read-only: no mutations are generated");
 const neo4jGraphQL = new Neo4jGraphQL({
   typeDefs,
   driver,
