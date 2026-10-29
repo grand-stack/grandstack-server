@@ -8,6 +8,7 @@ GraphQL API over Neo4j using `@neo4j/graphql` v7 and GraphQL Yoga. Configured by
 - Before you finish any change: `npm run lint && npm test && npm run schema:check && npm run docs:check`. `schema:check` needs a git checkout with the schema committed at `HEAD`; `docs:check` fails until you run `npm run docs:schema` after a schema change.
 
 ## Rules that are easy to get wrong
+- **Build on the blocks; do not make a silo.** A new repository or setup must be made from what GRANDstack already provides (the `grandstack-server` image and its models, the `grandstack-federation` gateway, `grandstack-auth`, `grandstack-agents`, compose overlays in the `grandstack` repository), and improve a block when it falls short rather than copying or working around it. Read [building on GRANDstack](../grandstack/docs/building-on-grandstack.md) before creating a repository, a compose file, a server, a gateway or a docs structure. Providing building blocks that people shape into their own solution is a goal of the project.
 - Every type, field and argument in `schema/schema.graphql` needs a `"""description"""` (lint enforces it).
 - Types need `@node` (v7). New Neo4j directives need a stub in `tooling/neo4j-directives.graphql`.
 - Scalar updates are `{ set: value }`. Relationship updates must be a diff, never "disconnect all then connect" ([docs/mutations.md](docs/mutations.md)).
