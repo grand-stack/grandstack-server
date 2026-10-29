@@ -1,6 +1,7 @@
 # Copyright (c) "Neo4j"
 # Neo4j Sweden AB [http://neo4j.com]
 # The ignores are pins that must hold (see AGENTS.md): graphql stays 16.x; @apollo/subgraph stays 2.14.4 (2.15.1 breaks @neo4j/graphql 7.6.4);
+# graphql-yoga stays on 5.x (yoga 6 needs @graphql-tools/utils 13, which the GraphQL ESLint plugin and the Hive gateway cannot run on yet);
 # the MCP SDK stays on the v1 API; the Node images stay on the current LTS line (24). Everything else arrives as a pull request that CI validates.
 version: 2
 updates:
@@ -14,6 +15,8 @@ updates:
       - dependency-name: "graphql"
         update-types: ["version-update:semver-major"]
       - dependency-name: "@apollo/subgraph"
+      - dependency-name: "graphql-yoga"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: docker
     directory: "/"
     schedule: { interval: weekly }
