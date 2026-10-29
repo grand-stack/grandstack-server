@@ -12,6 +12,11 @@ Errors we actually hit while building this, with causes and fixes.
 | `Invalid input '"title"': expected an expression` while seeding | Cypher map keys must be bare words (`{title: "x"}`), not quoted (`{"title": "x"}`). JSON dumped into Cypher needs its keys unquoted. |
 | `npm install` complains about a `graphql` peer dependency | Keep `graphql` on 16.x. `@neo4j/graphql` 7.6.4 does not support graphql 17. |
 | Seed says "Database already has Movie data not loaded by this seed, skipping" | The database has `Movie` nodes but no `SeedMeta` marker, so it is treated as someone else's data. Use an empty database, or `docker compose down -v`. See [seeding](seeding.md). |
+| `Unknown MODEL "x": there is no models/x/schema.graphql (available: movies, ...)` | The name does not match a folder. Mount your models folder at `/app/models` (or set `MODELS_DIR`) and check the spelling. The error lists the models it found. |
+| `MODEL "x" has a seed, so models/x/model.json must set "seedProbeLabel"` | A model with a `seed.cypher` must say which node label shows that its data is already there. |
+| `SEED is on but MODEL "x" has no seed.cypher` | `SEED=true` was set for a model with nothing to seed. Remove it, or give the model a seed. |
+| A mutation fails with `Schema is not configured to execute mutation operation` | The server is running with `READ_ONLY=true`, so it has no mutations. Send writes to the server that is not read-only. |
+| Movie data appears in a database that should hold another model | Both models used the same database. A model never clears another's data; use a separate database or `down -v`. |
 | Changed the seed but nothing reloaded | Bump `// seed-version: N` at the top of the file. |
 
 ## Queries and mutations

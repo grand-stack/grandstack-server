@@ -23,11 +23,11 @@ Applies to grandstack-server v0.7.1 (`@neo4j/graphql` 7.6.4, `graphql` 16.14, No
 
 `src/index.ts` runs these steps in order. If any step throws, the process exits with the error, so a bad configuration fails fast.
 
-1. **Read configuration** from environment variables. `NEO4J_URI` and `NEO4J_PASSWORD` are required.
+1. **Read configuration** from environment variables. `NEO4J_URI` and `NEO4J_PASSWORD` are required. `MODEL` (default `movies`) picks the schema, setup, seed and plugin defaults ([models](configuration.md#models)); explicit variables win over them.
 2. **Create the Neo4j driver** and call `verifyConnectivity`. This fails immediately if Neo4j is unreachable or the credentials are wrong.
-3. **Seed** (unless `SEED=false`): decide whether to load `seed/movies.cypher` ([rules](seeding.md)).
-4. **Run setup Cypher** from `SETUP_CYPHER_PATHS`, if set (idempotent constraints, indexes and data fix-ups, run at every start, after the seed so it also applies to freshly loaded data).
-5. **Read the schema**: the file at `SCHEMA_PATH` plus any `SCHEMA_EXTRA_PATHS`, joined, and build the executable schema with `new Neo4jGraphQL({ typeDefs, driver, features }).getSchema()`. If the `AUTH_*` variables are set, `features.authorization` is a remote JWKS with issuer and audience checks. With `FEDERATION=true` it calls `getSubgraphSchema()` instead, which needs a federation `@link` in the schema. Schema errors, for example a missing `@node`, surface here.
+3. **Seed** (unless `SEED=false` or the model has no seed): decide whether to load the model's seed, `seed/movies.cypher` for Movies ([rules](seeding.md)).
+4. **Run setup Cypher**: the model's `setup.cypher` first, then `SETUP_CYPHER_PATHS`, if set (idempotent constraints, indexes and data fix-ups, run at every start, after the seed so it also applies to freshly loaded data).
+5. **Read the schema**: the file at `SCHEMA_PATH` plus any `SCHEMA_EXTRA_PATHS`, joined (with `@mutation(operations: [])` added to every node type when `READ_ONLY=true`), and build the executable schema with `new Neo4jGraphQL({ typeDefs, driver, features }).getSchema()`. If the `AUTH_*` variables are set, `features.authorization` is a remote JWKS with issuer and audience checks. With `FEDERATION=true` it calls `getSubgraphSchema()` instead, which needs a federation `@link` in the schema. Schema errors, for example a missing `@node`, surface here.
 6. **Create the Yoga server** with CORS, the counts plugin (if `REFRESH_COUNTS` is not `false`) and the per-request context below.
 7. **Listen** on `PORT`. The GraphQL endpoint is `/graphql`; opening it in a browser shows GraphiQL.
 8. On `SIGINT` or `SIGTERM` it closes the HTTP server and the driver.
